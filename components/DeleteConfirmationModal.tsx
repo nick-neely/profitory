@@ -6,31 +6,28 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState } from "react";
 
 interface DeleteConfirmationModalProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
   productName: string;
 }
 
 export function DeleteConfirmationModal({
+  isOpen,
+  onOpenChange,
   onConfirm,
   productName,
 }: DeleteConfirmationModalProps) {
-  const [isOpen, setIsOpen] = useState(false);
-
   const handleConfirm = () => {
     onConfirm();
-    setIsOpen(false);
+    onOpenChange(false);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="destructive">Remove</Button>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Confirm Deletion</DialogTitle>
@@ -40,7 +37,7 @@ export function DeleteConfirmationModal({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button variant="destructive" onClick={handleConfirm}>

@@ -184,6 +184,7 @@ export function ProductTable({
   const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
 
   const defaultColumns = useMemo<(keyof Product)[]>(
     () => ["brand", "name", "price", "quantity", "condition", "category"],
@@ -724,6 +725,53 @@ export function ProductTable({
     ...pinnedColumns.right,
   ];
 
+  const exportRowToCSV = useCallback(
+    (product: Product) => {
+      const headers = columns;
+      const row = columns.map((column) => {
+        const value = product[column];
+        return column === "price"
+          ? formatCurrency(value as number)
+          : String(value);
+      });
+
+      const csvContent = [headers, row]
+        .map((row) => row.map((item) => `"${item}"`).join(","))
+        .join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `product-${product.id}.csv`);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
+    [columns]
+  );
+
+  const copyRowToClipboard = useCallback(
+    async (product: Product) => {
+      const rowData = columns
+        .map((column) => {
+          const value = product[column];
+          return column === "price"
+            ? formatCurrency(value as number)
+            : String(value);
+        })
+        .join(", ");
+
+      try {
+        await navigator.clipboard.writeText(rowData);
+      } catch (err) {
+        console.error("Failed to copy to clipboard:", err);
+      }
+    },
+    [columns]
+  );
+
   return (
     <div className="space-y-6 py-4">
       <div className="relative" ref={containerRef}>
@@ -860,42 +908,66 @@ export function ProductTable({
           </TableHeader>
           <TableBody>
             {paginatedProducts.map((product) => (
-              <TableRow
-                key={product.id}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={handleRowClick(product)}
-              >
-                {sortedColumns.map((column) => (
-                  <TableCell
-                    key={`${product.id}-${column}`}
-                    className={cn(
-                      pinnedColumns.left.includes(column) &&
-                        "sticky left-0 bg-background",
-                      pinnedColumns.right.includes(column) &&
-                        "sticky right-0 bg-background"
-                    )}
+              <ContextMenu key={product.id}>
+                <ContextMenuTrigger asChild>
+                  <TableRow
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={handleRowClick(product)}
                   >
-                    {column === "price"
-                      ? formatCurrency(product[column])
-                      : product[column]}
-                  </TableCell>
-                ))}
-                <TableCell
-                  className="sticky right-0 bg-background"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex space-x-2">
-                    <EditProductForm
-                      product={product}
-                      onEditProduct={onEditProduct}
-                    />
-                    <DeleteConfirmationModal
-                      onConfirm={() => onRemoveProduct(product.id)}
-                      productName={product.name}
-                    />
-                  </div>
-                </TableCell>
-              </TableRow>
+                    {sortedColumns.map((column) => (
+                      <TableCell
+                        key={`${product.id}-${column}`}
+                        className={cn(
+                          pinnedColumns.left.includes(column) &&
+                            "sticky left-0 bg-background",
+                          pinnedColumns.right.includes(column) &&
+                            "sticky right-0 bg-background"
+                        )}
+                      >
+                        {column === "price"
+                          ? formatCurrency(product[column])
+                          : product[column]}
+                      </TableCell>
+                    ))}
+                    <TableCell
+                      className="sticky right-0 bg-background"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex space-x-2">
+                        <EditProductForm
+                          product={product}
+                          onEditProduct={onEditProduct}
+                        />
+                        <Button
+                          variant="destructive"
+                          onClick={() => setDeleteProduct(product)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem onClick={() => handleRowClick(product)()}>
+                    View Details
+                  </ContextMenuItem>
+                  <ContextMenuSeparator />
+                  <ContextMenuItem onClick={() => exportRowToCSV(product)}>
+                    Export Row to CSV
+                  </ContextMenuItem>
+                  <ContextMenuItem onClick={() => copyRowToClipboard(product)}>
+                    Copy Row to Clipboard
+                  </ContextMenuItem>
+                  <ContextMenuSeparator />
+                  <ContextMenuItem
+                    className="text-red-600"
+                    onClick={() => setDeleteProduct(product)}
+                  >
+                    Delete Row
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
             ))}
           </TableBody>
           <TableFooter>
@@ -966,6 +1038,17 @@ export function ProductTable({
           isOpen={isDeleteAllModalOpen}
           onOpenChange={setIsDeleteAllModalOpen}
           onConfirm={onRemoveAllProducts}
+        />
+        <DeleteConfirmationModal
+          isOpen={deleteProduct !== null}
+          onOpenChange={(open) => !open && setDeleteProduct(null)}
+          onConfirm={() => {
+            if (deleteProduct) {
+              onRemoveProduct(deleteProduct.id);
+              setDeleteProduct(null);
+            }
+          }}
+          productName={deleteProduct?.name ?? ""}
         />
         <ProductDetail
           product={selectedProduct}
