@@ -1,6 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -172,25 +179,6 @@ export function ProductTable({
     document.body.removeChild(link);
   };
 
-  const renderSortButton = (key: keyof Product, label: string) => (
-    <Button
-      variant="ghost"
-      onClick={() => handleSort(key)}
-      className="h-8 px-2 lg:px-3"
-    >
-      {label}
-      {sortConfig.key === key ? (
-        sortConfig.direction === "asc" ? (
-          <SortAsc className="ml-2 h-4 w-4" />
-        ) : (
-          <SortDesc className="ml-2 h-4 w-4" />
-        )
-      ) : (
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      )}
-    </Button>
-  );
-
   const renderFilterInput = (column: keyof Product) => {
     if (column === "condition") {
       return (
@@ -270,6 +258,106 @@ export function ProductTable({
       setSelectedProduct(product);
       setIsDetailOpen(true);
     };
+  };
+
+  const renderColumnHeader = (column: keyof Product) => {
+    const label = column.charAt(0).toUpperCase() + column.slice(1);
+
+    return (
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            onClick={() => handleSort(column)}
+            className="h-8 px-2 lg:px-3 w-full justify-start"
+          >
+            {label}
+            {sortConfig.key === column ? (
+              sortConfig.direction === "asc" ? (
+                <SortAsc className="ml-2 h-4 w-4" />
+              ) : (
+                <SortDesc className="ml-2 h-4 w-4" />
+              )
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        </ContextMenuTrigger>
+        <ContextMenuContent className="w-64">
+          <ContextMenuItem onClick={() => handleSort(column)}>
+            Sort {sortConfig.direction === "asc" ? "Descending" : "Ascending"}
+          </ContextMenuItem>
+          <ContextMenuSeparator />
+          {column === "price" && (
+            <ContextMenuItem
+              onClick={() => {
+                setShowFilterInputs(true);
+                const element = document.querySelector(
+                  `[data-filter="${column}"]`
+                );
+                if (element instanceof HTMLElement) {
+                  element.click();
+                }
+              }}
+            >
+              Filter by Price...
+            </ContextMenuItem>
+          )}
+          {column === "quantity" && (
+            <ContextMenuItem
+              onClick={() => {
+                setShowFilterInputs(true);
+                const element = document.querySelector(
+                  `[data-filter="${column}"]`
+                );
+                if (element instanceof HTMLElement) {
+                  element.click();
+                }
+              }}
+            >
+              Filter by Quantity...
+            </ContextMenuItem>
+          )}
+          {column === "condition" && (
+            <ContextMenuItem
+              onClick={() => {
+                setShowFilterInputs(true);
+              }}
+            >
+              Filter by Condition...
+            </ContextMenuItem>
+          )}
+          {(column === "brand" ||
+            column === "name" ||
+            column === "category") && (
+            <ContextMenuItem
+              onClick={() => {
+                setShowFilterInputs(true);
+                setFilters((prev) => ({ ...prev, [column]: "" }));
+              }}
+            >
+              Filter by Text...
+            </ContextMenuItem>
+          )}
+          {filters[column] && (
+            <>
+              <ContextMenuSeparator />
+              <ContextMenuItem
+                onClick={() => {
+                  setFilters((prev) => {
+                    const newFilters = { ...prev };
+                    delete newFilters[column];
+                    return newFilters;
+                  });
+                }}
+              >
+                Clear Filter
+              </ContextMenuItem>
+            </>
+          )}
+        </ContextMenuContent>
+      </ContextMenu>
+    );
   };
 
   return (
@@ -374,12 +462,7 @@ export function ProductTable({
           <TableHeader>
             <TableRow>
               {columns.map((column) => (
-                <TableHead key={column}>
-                  {renderSortButton(
-                    column,
-                    column.charAt(0).toUpperCase() + column.slice(1)
-                  )}
-                </TableHead>
+                <TableHead key={column}>{renderColumnHeader(column)}</TableHead>
               ))}
               <TableHead>Action</TableHead>
             </TableRow>
@@ -387,7 +470,7 @@ export function ProductTable({
               <TableRow>
                 {columns.map((column) => (
                   <TableHead key={`filter-${column}`}>
-                    {renderFilterInput(column)}
+                    <div data-filter={column}>{renderFilterInput(column)}</div>
                   </TableHead>
                 ))}
                 <TableHead></TableHead>
@@ -396,7 +479,7 @@ export function ProductTable({
           </TableHeader>
           <TableBody>
             {paginatedProducts.map((product) => (
-              <TableRow 
+              <TableRow
                 key={product.id}
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={handleRowClick(product)}
