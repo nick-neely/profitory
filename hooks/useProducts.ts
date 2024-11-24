@@ -11,17 +11,15 @@ export interface Product {
 }
 
 export function useProducts() {
-  const [products, setProducts] = useState<Product[]>([])
-
-  useEffect(() => {
+  const [products, setProducts] = useState<Product[]>(() => {
     const storedProducts = localStorage.getItem('ebayProducts')
-    if (storedProducts) {
-      setProducts(JSON.parse(storedProducts))
-    }
-  }, [])
+    return storedProducts ? JSON.parse(storedProducts) : []
+  })
 
   useEffect(() => {
-    localStorage.setItem('ebayProducts', JSON.stringify(products))
+    if (products.length > 0) {
+      localStorage.setItem('ebayProducts', JSON.stringify(products))
+    }
   }, [products])
 
   const addProduct = (product: Omit<Product, 'id'>) => {
