@@ -42,6 +42,10 @@ import { useState } from "react";
 import { DeleteAllConfirmationModal } from "./DeleteAllConfirmationModal";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import { EditProductForm } from "./EditProductForm";
+import {
+  NumberFilter,
+  type NumberFilter as TNumberFilter,
+} from "./NumberFilter";
 import { PriceFilter } from "./PriceFilter";
 
 interface ProductTableProps {
@@ -59,7 +63,7 @@ type SortConfig = {
 
 type PriceOperator = ">" | ">=" | "<" | "<=" | "=";
 type PriceFilter = { operator: PriceOperator; value: number } | null;
-type FilterValue = string | PriceFilter;
+type FilterValue = string | PriceFilter | TNumberFilter;
 
 export function ProductTable({
   products,
@@ -93,19 +97,20 @@ export function ProductTable({
     Object.entries(filters).every(([key, filter]) => {
       if (!filter) return true;
 
-      if (key === "price") {
-        const priceFilter = filter as { operator: string; value: number };
-        switch (priceFilter.operator) {
+      if (key === "price" || key === "quantity") {
+        const numericFilter = filter as { operator: string; value: number };
+        const value = product[key as keyof Product] as number;
+        switch (numericFilter.operator) {
           case ">":
-            return product.price > priceFilter.value;
+            return value > numericFilter.value;
           case ">=":
-            return product.price >= priceFilter.value;
+            return value >= numericFilter.value;
           case "<":
-            return product.price < priceFilter.value;
+            return value < numericFilter.value;
           case "<=":
-            return product.price <= priceFilter.value;
+            return value <= numericFilter.value;
           case "=":
-            return product.price === priceFilter.value;
+            return value === numericFilter.value;
           default:
             return true;
         }
@@ -214,10 +219,26 @@ export function ProductTable({
     if (column === "price") {
       return (
         <PriceFilter
-          value={filters[column] as { operator: PriceOperator; value: number } | null}
+          value={
+            filters[column] as { operator: PriceOperator; value: number } | null
+          }
           onChange={(value) =>
             setFilters((prev) => ({ ...prev, [column]: value }))
           }
+        />
+      );
+    }
+
+    if (column === "quantity") {
+      return (
+        <NumberFilter
+          value={filters[column] as TNumberFilter}
+          onChange={(value) =>
+            setFilters((prev) => ({ ...prev, [column]: value }))
+          }
+          placeholder="Filter quantity..."
+          min={0}
+          step={1}
         />
       );
     }
