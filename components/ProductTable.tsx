@@ -218,10 +218,9 @@ export function ProductTable({
     });
 
     if (format === "csv") {
-      const csvContent = [
-        `"${column}"`,
-        ...columnData.map((value) => `"${value}"`),
-      ].join("\n");
+      const csvContent = [column, ...columnData]
+        .map((value) => `"${value}"`)
+        .join(",");
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
