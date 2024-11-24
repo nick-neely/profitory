@@ -8,7 +8,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProducts } from "@/hooks/useProducts";
 
 export default function Home() {
-  const { products, addProduct, removeProduct, editProduct } = useProducts();
+  const {
+    products,
+    addProduct,
+    removeProduct,
+    editProduct,
+    removeAllProducts,
+  } = useProducts();
 
   return (
     <div className="container mx-auto p-4">
@@ -26,6 +32,7 @@ export default function Home() {
               products={products}
               onRemoveProduct={removeProduct}
               onEditProduct={editProduct}
+              onRemoveAllProducts={removeAllProducts}
             />
           </div>
         </TabsContent>

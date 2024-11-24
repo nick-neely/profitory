@@ -9,10 +9,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Product } from "@/hooks/useProducts";
+import { Upload } from "lucide-react";
+import Papa from "papaparse";
 import { useState } from "react";
 
 interface ProductFormProps {
-  onAddProduct: (product: Omit<Product, "id">) => void;
+  onAddProduct: (product: Omit<Product, "id"> | Omit<Product, "id">[]) => void;
 }
 
 export function ProductForm({ onAddProduct }: ProductFormProps) {
@@ -24,6 +26,38 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
     condition: "New",
     category: "",
   });
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      interface CSVRow {
+        Brand: string;
+        Name: string;
+        Price: string;
+        Quantity: string;
+        Condition: string;
+        Category: string;
+      }
+
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results: Papa.ParseResult<CSVRow>) => {
+          const products: Omit<Product, "id">[] = results.data.map(
+            (row: CSVRow) => ({
+              brand: row.Brand || "",
+              name: row.Name || "",
+              price: parseFloat(row.Price.replace(/[$,]/g, '')) || 0,
+              quantity: parseInt(row.Quantity) || 1,
+              condition: row.Condition || "New",
+              category: row.Category || "",
+            })
+          );
+          onAddProduct(products);
+        },
+      });
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,7 +152,20 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
           />
         </div>
       </div>
-      <Button type="submit">Add Product</Button>
+      <div className="flex space-x-2">
+        <Button type="submit">Add Product</Button>
+        <Label htmlFor="csvFile" className="flex items-center cursor-pointer">
+          <Upload className="mr-2 h-4 w-4" />
+          Import CSV
+        </Label>
+        <Input
+          id="csvFile"
+          type="file"
+          accept=".csv"
+          onChange={handleFileUpload}
+          className="hidden"
+        />
+      </div>
     </form>
   );
 }

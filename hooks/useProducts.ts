@@ -10,6 +10,10 @@ export interface Product {
   category: string;
 }
 
+const generateId = () => {
+  return Math.random().toString(36).substring(2, 11);
+};
+
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>([]);
 
@@ -26,8 +30,15 @@ export function useProducts() {
     }
   }, [products]);
 
-  const addProduct = (product: Omit<Product, "id">) => {
-    setProducts([...products, { ...product, id: Date.now().toString() }]);
+  const addProduct = (
+    newProduct: Omit<Product, "id"> | Omit<Product, "id">[]
+  ) => {
+    setProducts((prevProducts) => [
+      ...prevProducts,
+      ...(Array.isArray(newProduct)
+        ? newProduct.map((product) => ({ ...product, id: generateId() }))
+        : [{ ...newProduct, id: generateId() }]),
+    ]);
   };
 
   const removeProduct = (id: string) => {
@@ -40,5 +51,15 @@ export function useProducts() {
     );
   };
 
-  return { products, addProduct, removeProduct, editProduct };
+  const removeAllProducts = () => {
+    setProducts([]);
+  };
+
+  return {
+    products,
+    addProduct,
+    removeProduct,
+    editProduct,
+    removeAllProducts,
+  };
 }

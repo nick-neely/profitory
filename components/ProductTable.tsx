@@ -23,11 +23,14 @@ import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
+  Download,
   Filter,
   SortAsc,
   SortDesc,
+  Trash,
 } from "lucide-react";
 import { useState } from "react";
+import { DeleteAllConfirmationModal } from "./DeleteAllConfirmationModal";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import { EditProductForm } from "./EditProductForm";
 
@@ -35,6 +38,7 @@ interface ProductTableProps {
   products: Product[];
   onRemoveProduct: (id: string) => void;
   onEditProduct: (id: string, product: Omit<Product, "id">) => void;
+  onRemoveAllProducts: () => void;
 }
 
 type SortConfig = {
@@ -46,6 +50,7 @@ export function ProductTable({
   products,
   onRemoveProduct,
   onEditProduct,
+  onRemoveAllProducts,
 }: ProductTableProps) {
   const [filters, setFilters] = useState<
     Partial<Record<keyof Product, string>>
@@ -57,6 +62,7 @@ export function ProductTable({
   const [showFilterInputs, setShowFilterInputs] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
 
   const handleFilterChange = (key: keyof Product, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -90,6 +96,39 @@ export function ProductTable({
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  const exportToCSV = () => {
+    const headers = [
+      "Brand",
+      "Name",
+      "Price",
+      "Quantity",
+      "Condition",
+      "Category",
+    ];
+    const rows = sortedProducts.map((product) => [
+      product.brand,
+      product.name,
+      `$${product.price.toFixed(2)}`,
+      product.quantity,
+      product.condition,
+      product.category,
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((item) => `"${item}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "products.csv");
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const renderSortButton = (key: keyof Product, label: string) => (
     <Button
@@ -130,6 +169,30 @@ export function ProductTable({
           >
             <Filter className="h-4 w-4" />
           </Button>
+          <Button
+            variant="outline"
+            onClick={exportToCSV}
+            title="Export to CSV"
+            disabled={sortedProducts.length === 0}
+          >
+            <Download
+              className={`h-4 w-4 ${
+                sortedProducts.length === 0 ? "text-muted-foreground" : ""
+              }`}
+            />
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setIsDeleteAllModalOpen(true)}
+            title="Delete All Products"
+            disabled={sortedProducts.length === 0}
+          >
+            <Trash
+              className={`h-4 w-4 ${
+                sortedProducts.length === 0 ? "text-muted-foreground" : ""
+              }`}
+            />
+          </Button>
         </div>
         <div className="flex items-center space-x-2">
           <span className="text-sm text-muted-foreground">Items per page:</span>
@@ -164,7 +227,6 @@ export function ProductTable({
                 )}
               </TableHead>
             ))}
-            <TableHead>Value</TableHead>
             <TableHead>Action</TableHead>
           </TableRow>
           {showFilterInputs && (
@@ -180,7 +242,6 @@ export function ProductTable({
                 </TableHead>
               ))}
               <TableHead></TableHead>
-              <TableHead></TableHead>
             </TableRow>
           )}
         </TableHeader>
@@ -194,9 +255,6 @@ export function ProductTable({
                     : product[column]}
                 </TableCell>
               ))}
-              <TableCell>
-                ${(product.price * product.quantity).toFixed(2)}
-              </TableCell>
               <TableCell>
                 <div className="flex space-x-2">
                   <EditProductForm
@@ -214,7 +272,7 @@ export function ProductTable({
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={5} className="font-medium">
+            <TableCell colSpan={4} className="font-medium">
               Totals
             </TableCell>
             <TableCell className="font-medium">
@@ -273,6 +331,11 @@ export function ProductTable({
           </TableRow>
         </TableFooter>
       </Table>
+      <DeleteAllConfirmationModal
+        isOpen={isDeleteAllModalOpen}
+        onOpenChange={setIsDeleteAllModalOpen}
+        onConfirm={onRemoveAllProducts}
+      />
     </div>
   );
 }
