@@ -186,6 +186,7 @@ export function ProductTable({
             onClick={() => setIsDeleteAllModalOpen(true)}
             title="Delete All Products"
             disabled={sortedProducts.length === 0}
+            className="hover:bg-red-500 hover:text-white"
           >
             <Trash
               className={`h-4 w-4 ${

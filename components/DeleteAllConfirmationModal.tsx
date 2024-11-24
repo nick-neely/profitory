@@ -28,16 +28,74 @@ export function DeleteAllConfirmationModal({
     if (isOpen) {
       // Generate a random short phrase when the modal opens
       const words = [
-        "dog",
-        "cat",
+        // Colors
         "red",
         "blue",
-        "mouse",
+        "pink",
+        "gold",
+        "jade",
+
+        // Animals
+        "dog",
+        "cat",
+        "fox",
+        "wolf",
+        "bear",
+        "duck",
+        "fish",
+
+        // Nature
         "tree",
-        "sky",
-        "green",
-        "car",
-        "house",
+        "leaf",
+        "rock",
+        "moon",
+        "star",
+        "rain",
+        "wind",
+
+        // Objects
+        "book",
+        "lamp",
+        "key",
+        "door",
+        "cup",
+        "ring",
+        "box",
+
+        // Food
+        "cake",
+        "milk",
+        "rice",
+        "pie",
+        "jam",
+
+        // Abstract
+        "hope",
+        "joy",
+        "calm",
+        "soft",
+        "wave",
+
+        // Simple verbs
+        "jump",
+        "swim",
+        "run",
+        "sing",
+        "glow",
+
+        // Places
+        "home",
+        "shop",
+        "park",
+        "pond",
+        "cave",
+
+        // Tech
+        "code",
+        "link",
+        "post",
+        "chat",
+        "app",
       ];
       const randomWords = Array.from(
         { length: 3 },
