@@ -50,7 +50,7 @@ import {
   SortDesc,
   Trash,
 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DeleteAllConfirmationModal } from "./DeleteAllConfirmationModal";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import { EditProductForm } from "./EditProductForm";
@@ -60,6 +60,21 @@ import {
 } from "./NumberFilter";
 import { PriceFilter } from "./PriceFilter";
 import { ProductDetail } from "./ProductDetail";
+
+// Define interface for column constraints
+interface ColumnConstraints {
+  [key: string]: { minWidth: number; maxWidth: number };
+}
+
+// Define min and max width constraints for each column
+const columnConstraints: ColumnConstraints = {
+  brand: { minWidth: 100, maxWidth: 300 },
+  name: { minWidth: 150, maxWidth: 400 },
+  price: { minWidth: 80, maxWidth: 150 },
+  quantity: { minWidth: 80, maxWidth: 150 },
+  condition: { minWidth: 100, maxWidth: 250 },
+  category: { minWidth: 100, maxWidth: 250 },
+};
 
 interface ProductTableProps {
   products: Product[];
@@ -77,6 +92,79 @@ type SortConfig = {
 type PriceOperator = ">" | ">=" | "<" | "<=" | "=";
 type PriceFilter = { operator: PriceOperator; value: number } | null;
 type FilterValue = string | PriceFilter | TNumberFilter;
+
+const useColumnResize = (initialWidths: Record<string, number>) => {
+  const [isResizing, setIsResizing] = useState(false);
+  const widths = useRef(initialWidths);
+  const resizingColumn = useRef<string | null>(null);
+  const startX = useRef<number>(0);
+  const startWidth = useRef<number>(0);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const handleMouseDown = useCallback(
+    (column: string, width: number, e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      setIsResizing(true);
+      resizingColumn.current = column;
+      startX.current = e.clientX;
+      startWidth.current = width;
+    },
+    []
+  );
+
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isResizing || !resizingColumn.current || !containerRef.current)
+        return;
+
+      const delta = e.clientX - startX.current;
+      const column = resizingColumn.current;
+      const startWidthValue = startWidth.current;
+      const { minWidth, maxWidth } = columnConstraints[column];
+      const newWidth = Math.max(
+        minWidth,
+        Math.min(startWidthValue + delta, maxWidth)
+      );
+
+      requestAnimationFrame(() => {
+        document.documentElement.style.setProperty(
+          `--column-width-${column}`,
+          `${newWidth}px`
+        );
+      });
+    },
+    [isResizing]
+  );
+
+  const handleMouseUp = useCallback(() => {
+    if (!isResizing || !resizingColumn.current) return;
+
+    const finalWidth = parseInt(
+      getComputedStyle(document.documentElement)
+        .getPropertyValue(`--column-width-${resizingColumn.current}`)
+        .slice(0, -2)
+    );
+
+    widths.current = {
+      ...widths.current,
+      [resizingColumn.current]: finalWidth,
+    };
+
+    setIsResizing(false);
+    resizingColumn.current = null;
+  }, [isResizing]);
+
+  return {
+    containerRef,
+    isResizing,
+    widths: widths.current,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+  };
+};
 
 export function ProductTable({
   products,
@@ -97,14 +185,10 @@ export function ProductTable({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  const defaultColumns: (keyof Product)[] = [
-    "brand",
-    "name",
-    "price",
-    "quantity",
-    "condition",
-    "category",
-  ];
+  const defaultColumns = useMemo<(keyof Product)[]>(
+    () => ["brand", "name", "price", "quantity", "condition", "category"],
+    []
+  );
 
   const [columns, setColumns] = useState<(keyof Product)[]>(defaultColumns);
 
@@ -116,9 +200,9 @@ export function ProductTable({
     );
   };
 
-  const resetColumns = () => {
+  const resetColumns = useCallback(() => {
     setColumns(defaultColumns);
-  };
+  }, [defaultColumns]);
 
   const hiddenColumnsCount = defaultColumns.length - columns.length;
 
@@ -209,46 +293,54 @@ export function ProductTable({
     document.body.removeChild(link);
   };
 
-  const exportColumn = (column: keyof Product, format: "csv") => {
-    const columnData = sortedProducts.map((product) => {
-      const value = product[column];
-      return column === "price"
-        ? formatCurrency(value as number)
-        : String(value);
-    });
-
-    if (format === "csv") {
-      const csvContent = [column, ...columnData]
-        .map((value) => `"${value}"`)
-        .join(",");
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", `${column}.csv`);
-      link.style.visibility = "hidden";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
-
-  const copyColumnToClipboard = async (column: keyof Product) => {
-    const columnData = sortedProducts
-      .map((product) => {
+  const exportColumn = useCallback(
+    (column: keyof Product, format: "csv") => {
+      const columnData = sortedProducts.map((product) => {
         const value = product[column];
         return column === "price"
           ? formatCurrency(value as number)
           : String(value);
-      })
-      .join(", ");
+      });
 
-    try {
-      await navigator.clipboard.writeText(columnData);
-    } catch (err) {
-      console.error("Failed to copy to clipboard:", err);
-    }
-  };
+      if (format === "csv") {
+        const csvContent = [column, ...columnData]
+          .map((value) => `"${value}"`)
+          .join(",");
+        const blob = new Blob([csvContent], {
+          type: "text/csv;charset=utf-8;",
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `${column}.csv`);
+        link.style.visibility = "hidden";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    },
+    [sortedProducts]
+  );
+
+  const copyColumnToClipboard = useCallback(
+    async (column: keyof Product) => {
+      const columnData = sortedProducts
+        .map((product) => {
+          const value = product[column];
+          return column === "price"
+            ? formatCurrency(value as number)
+            : String(value);
+        })
+        .join(", ");
+
+      try {
+        await navigator.clipboard.writeText(columnData);
+      } catch (err) {
+        console.error("Failed to copy to clipboard:", err);
+      }
+    },
+    [sortedProducts]
+  );
 
   const renderFilterInput = (column: keyof Product) => {
     if (column === "condition") {
@@ -348,174 +440,278 @@ export function ProductTable({
     }));
   };
 
-  const renderColumnHeader = (column: keyof Product) => {
-    const label = column.charAt(0).toUpperCase() + column.slice(1);
-    const isPinnedLeft = pinnedColumns.left.includes(column);
-    const isPinnedRight = pinnedColumns.right.includes(column);
-    const isPinned = isPinnedLeft || isPinnedRight;
+  const columnWidthsInit = useMemo(
+    () => ({
+      brand: 150,
+      name: 200,
+      price: 100,
+      quantity: 100,
+      condition: 150,
+      category: 150,
+    }),
+    []
+  );
 
-    return (
-      <ContextMenu>
-        <ContextMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            onClick={() => handleSort(column)}
-            className={cn(
-              "h-8 px-2 lg:px-3 w-full justify-start",
-              isPinned && "bg-muted"
-            )}
-          >
-            {label}
-            {sortConfig.key === column ? (
-              sortConfig.direction === "asc" ? (
-                <SortAsc className="ml-2 h-4 w-4" />
-              ) : (
-                <SortDesc className="ml-2 h-4 w-4" />
-              )
-            ) : (
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        </ContextMenuTrigger>
-        <ContextMenuContent className="w-64">
-          <ContextMenuItem onClick={() => handleSort(column)}>
-            Sort {sortConfig.direction === "asc" ? "Descending" : "Ascending"}
-          </ContextMenuItem>
-          <ContextMenuSeparator />
-          {column === "price" && (
-            <ContextMenuItem
-              onClick={() => {
-                setShowFilterInputs(true);
-                const element = document.querySelector(
-                  `[data-filter="${column}"]`
-                );
-                if (element instanceof HTMLElement) {
-                  element.click();
-                }
-              }}
-            >
-              Filter by Price...
-            </ContextMenuItem>
-          )}
-          {column === "quantity" && (
-            <ContextMenuItem
-              onClick={() => {
-                setShowFilterInputs(true);
-                const element = document.querySelector(
-                  `[data-filter="${column}"]`
-                );
-                if (element instanceof HTMLElement) {
-                  element.click();
-                }
-              }}
-            >
-              Filter by Quantity...
-            </ContextMenuItem>
-          )}
-          {column === "condition" && (
-            <ContextMenuItem
-              onClick={() => {
-                setShowFilterInputs(true);
-              }}
-            >
-              Filter by Condition...
-            </ContextMenuItem>
-          )}
-          {(column === "brand" ||
-            column === "name" ||
-            column === "category") && (
-            <ContextMenuItem
-              onClick={() => {
-                setShowFilterInputs(true);
-                setFilters((prev) => ({ ...prev, [column]: "" }));
-              }}
-            >
-              Filter by Text...
-            </ContextMenuItem>
-          )}
-          {filters[column] && (
-            <>
-              <ContextMenuSeparator />
-              <ContextMenuItem
-                onClick={() => {
-                  setFilters((prev) => {
-                    const newFilters = { ...prev };
-                    delete newFilters[column];
-                    return newFilters;
-                  });
-                }}
+  const {
+    containerRef,
+    isResizing,
+    widths,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+  } = useColumnResize(columnWidthsInit);
+
+  // Add event listeners
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      return () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
+  }, [isResizing, handleMouseMove, handleMouseUp]);
+
+  // Add CSS variables for initial column widths with constraints
+  useEffect(() => {
+    Object.entries(columnWidthsInit).forEach(([column, width]) => {
+      const { minWidth, maxWidth } = columnConstraints[column];
+      const initialWidth = Math.max(minWidth, Math.min(width, maxWidth));
+      document.documentElement.style.setProperty(
+        `--column-width-${column}`,
+        `${initialWidth}px`
+      );
+    });
+  }, [columnWidthsInit]);
+
+  const resetColumnWidths = useCallback(() => {
+    Object.entries(columnWidthsInit).forEach(([column, width]) => {
+      const { minWidth, maxWidth } = columnConstraints[column];
+      const initialWidth = Math.max(minWidth, Math.min(width, maxWidth));
+      document.documentElement.style.setProperty(
+        `--column-width-${column}`,
+        `${initialWidth}px`
+      );
+    });
+  }, [columnWidthsInit]);
+
+  const renderColumnHeader = useCallback(
+    (column: keyof Product) => {
+      const label = column.charAt(0).toUpperCase() + column.slice(1);
+      const isPinnedLeft = pinnedColumns.left.includes(column);
+      const isPinnedRight = pinnedColumns.right.includes(column);
+      const isPinned = isPinnedLeft || isPinnedRight;
+
+      return (
+        <div className="relative flex items-center h-full">
+          <ContextMenu>
+            <ContextMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                onClick={() => handleSort(column)}
+                className={cn(
+                  "h-8 px-2 lg:px-3 w-full justify-start",
+                  isPinned && "bg-muted"
+                )}
               >
-                Clear Filter
+                {label}
+                {sortConfig.key === column ? (
+                  sortConfig.direction === "asc" ? (
+                    <SortAsc className="ml-2 h-4 w-4" />
+                  ) : (
+                    <SortDesc className="ml-2 h-4 w-4" />
+                  )
+                ) : (
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                )}
+              </Button>
+            </ContextMenuTrigger>
+            <ContextMenuContent className="w-64">
+              <ContextMenuItem onClick={() => handleSort(column)}>
+                Sort{" "}
+                {sortConfig.direction === "asc" ? "Descending" : "Ascending"}
               </ContextMenuItem>
-            </>
-          )}
-          <ContextMenuSeparator />
-          <ContextMenuSub>
-            <ContextMenuSubTrigger>Export</ContextMenuSubTrigger>
-            <ContextMenuSubContent>
-              <ContextMenuItem onClick={() => exportColumn(column, "csv")}>
-                Export Column to CSV
-              </ContextMenuItem>
-              <ContextMenuItem onClick={() => copyColumnToClipboard(column)}>
-                Copy Column to Clipboard
-              </ContextMenuItem>
-            </ContextMenuSubContent>
-          </ContextMenuSub>
-          <ContextMenuSub>
-            <ContextMenuSubTrigger>
-              Column Pinning
-              {isPinned && (
-                <Badge variant="secondary" className="ml-2">
-                  {isPinnedLeft ? "Left" : "Right"}
-                </Badge>
+              <ContextMenuSeparator />
+              {column === "price" && (
+                <ContextMenuItem
+                  onClick={() => {
+                    setShowFilterInputs(true);
+                    const element = document.querySelector(
+                      `[data-filter="${column}"]`
+                    );
+                    if (element instanceof HTMLElement) {
+                      element.click();
+                    }
+                  }}
+                >
+                  Filter by Price...
+                </ContextMenuItem>
               )}
-            </ContextMenuSubTrigger>
-            <ContextMenuSubContent>
-              <ContextMenuItem onClick={() => pinColumn(column, "left")}>
-                Pin to Left
-              </ContextMenuItem>
-              <ContextMenuItem onClick={() => pinColumn(column, "right")}>
-                Pin to Right
-              </ContextMenuItem>
-              {isPinned && (
+              {column === "quantity" && (
+                <ContextMenuItem
+                  onClick={() => {
+                    setShowFilterInputs(true);
+                    const element = document.querySelector(
+                      `[data-filter="${column}"]`
+                    );
+                    if (element instanceof HTMLElement) {
+                      element.click();
+                    }
+                  }}
+                >
+                  Filter by Quantity...
+                </ContextMenuItem>
+              )}
+              {column === "condition" && (
+                <ContextMenuItem
+                  onClick={() => {
+                    setShowFilterInputs(true);
+                  }}
+                >
+                  Filter by Condition...
+                </ContextMenuItem>
+              )}
+              {(column === "brand" ||
+                column === "name" ||
+                column === "category") && (
+                <ContextMenuItem
+                  onClick={() => {
+                    setShowFilterInputs(true);
+                    setFilters((prev) => ({ ...prev, [column]: "" }));
+                  }}
+                >
+                  Filter by Text...
+                </ContextMenuItem>
+              )}
+              {filters[column] && (
                 <>
                   <ContextMenuSeparator />
-                  <ContextMenuItem onClick={() => unpinColumn(column)}>
-                    Unpin Column
+                  <ContextMenuItem
+                    onClick={() => {
+                      setFilters((prev) => {
+                        const newFilters = { ...prev };
+                        delete newFilters[column];
+                        return newFilters;
+                      });
+                    }}
+                  >
+                    Clear Filter
                   </ContextMenuItem>
                 </>
               )}
-            </ContextMenuSubContent>
-          </ContextMenuSub>
-          <ContextMenuSub>
-            <ContextMenuSubTrigger>
-              Column Visibility
-              {hiddenColumnsCount > 0 && (
-                <Badge variant="secondary" className="ml-2">
-                  {hiddenColumnsCount}
-                </Badge>
-              )}
-            </ContextMenuSubTrigger>
-            <ContextMenuSubContent>
-              {defaultColumns.map((col) => (
-                <ContextMenuCheckboxItem
-                  key={col}
-                  checked={columns.includes(col)}
-                  onCheckedChange={() => toggleColumn(col)}
-                >
-                  {col.charAt(0).toUpperCase() + col.slice(1)}
-                </ContextMenuCheckboxItem>
-              ))}
               <ContextMenuSeparator />
-              <ContextMenuItem onClick={resetColumns}>
-                Reset Columns
-              </ContextMenuItem>
-            </ContextMenuSubContent>
-          </ContextMenuSub>
-        </ContextMenuContent>
-      </ContextMenu>
-    );
-  };
+              <ContextMenuSub>
+                <ContextMenuSubTrigger>Export</ContextMenuSubTrigger>
+                <ContextMenuSubContent>
+                  <ContextMenuItem onClick={() => exportColumn(column, "csv")}>
+                    Export Column to CSV
+                  </ContextMenuItem>
+                  <ContextMenuItem
+                    onClick={() => copyColumnToClipboard(column)}
+                  >
+                    Copy Column to Clipboard
+                  </ContextMenuItem>
+                </ContextMenuSubContent>
+              </ContextMenuSub>
+              <ContextMenuSeparator />
+              <ContextMenuSub>
+                <ContextMenuSubTrigger>
+                  Column Customization
+                </ContextMenuSubTrigger>
+                <ContextMenuSubContent>
+                  <ContextMenuItem onClick={resetColumnWidths}>
+                    Reset Column Widths
+                  </ContextMenuItem>
+                  <ContextMenuSeparator />
+                  <ContextMenuItem onClick={() => toggleColumn(column)}>
+                    {columns.includes(column) ? "Hide Column" : "Show Column"}
+                  </ContextMenuItem>
+                  <ContextMenuItem onClick={resetColumns}>
+                    Reset All Columns
+                  </ContextMenuItem>
+                </ContextMenuSubContent>
+              </ContextMenuSub>
+              <ContextMenuSub>
+                <ContextMenuSubTrigger>
+                  Column Pinning
+                  {isPinned && (
+                    <Badge variant="secondary" className="ml-2">
+                      {isPinnedLeft ? "Left" : "Right"}
+                    </Badge>
+                  )}
+                </ContextMenuSubTrigger>
+                <ContextMenuSubContent>
+                  <ContextMenuItem onClick={() => pinColumn(column, "left")}>
+                    Pin to Left
+                  </ContextMenuItem>
+                  <ContextMenuItem onClick={() => pinColumn(column, "right")}>
+                    Pin to Right
+                  </ContextMenuItem>
+                  {isPinned && (
+                    <>
+                      <ContextMenuSeparator />
+                      <ContextMenuItem onClick={() => unpinColumn(column)}>
+                        Unpin Column
+                      </ContextMenuItem>
+                    </>
+                  )}
+                </ContextMenuSubContent>
+              </ContextMenuSub>
+              <ContextMenuSub>
+                <ContextMenuSubTrigger>
+                  Column Visibility
+                  {hiddenColumnsCount > 0 && (
+                    <Badge variant="secondary" className="ml-2">
+                      {hiddenColumnsCount}
+                    </Badge>
+                  )}
+                </ContextMenuSubTrigger>
+                <ContextMenuSubContent>
+                  {defaultColumns.map((col) => (
+                    <ContextMenuCheckboxItem
+                      key={col}
+                      checked={columns.includes(col)}
+                      onCheckedChange={() => toggleColumn(col)}
+                    >
+                      {col.charAt(0).toUpperCase() + col.slice(1)}
+                    </ContextMenuCheckboxItem>
+                  ))}
+                  <ContextMenuSeparator />
+                  <ContextMenuItem onClick={resetColumns}>
+                    Reset Columns
+                  </ContextMenuItem>
+                </ContextMenuSubContent>
+              </ContextMenuSub>
+            </ContextMenuContent>
+          </ContextMenu>
+          <div
+            className="absolute -right-px top-0 h-full w-2 group cursor-col-resize select-none touch-none flex items-center justify-center"
+            onMouseDown={(e) => handleMouseDown(column, widths[column], e)}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="h-4 w-px bg-border group-hover:bg-primary/60 group-active:bg-primary/90 transition-colors" />
+          </div>
+        </div>
+      );
+    },
+    [
+      handleMouseDown,
+      widths,
+      columns,
+      copyColumnToClipboard,
+      defaultColumns,
+      exportColumn,
+      filters,
+      hiddenColumnsCount,
+      pinnedColumns.left,
+      pinnedColumns.right,
+      resetColumns,
+      resetColumnWidths,
+      sortConfig.direction,
+      sortConfig.key,
+    ]
+  );
 
   const visibleColumns = columns;
 
@@ -530,7 +726,7 @@ export function ProductTable({
 
   return (
     <div className="space-y-6 py-4">
-      <div className="relative">
+      <div className="relative" ref={containerRef}>
         {isLoading && (
           <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-50">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -626,13 +822,18 @@ export function ProductTable({
             </Select>
           </div>
         </div>
-        <Table>
+        <Table className={isResizing ? "select-none" : ""}>
           <TableHeader>
             <TableRow>
               {sortedColumns.map((column) => (
                 <TableHead
                   key={column}
+                  style={{
+                    width: `var(--column-width-${column})`,
+                    position: "relative",
+                  }}
                   className={cn(
+                    "transition-none", // Disable transitions during resize
                     pinnedColumns.left.includes(column) &&
                       "sticky left-0 bg-background",
                     pinnedColumns.right.includes(column) &&
