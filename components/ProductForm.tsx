@@ -47,7 +47,7 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
             (row: CSVRow) => ({
               brand: row.Brand || "",
               name: row.Name || "",
-              price: parseFloat(row.Price.replace(/[$,]/g, '')) || 0,
+              price: parseFloat(row.Price.replace(/[$,]/g, "")) || 0,
               quantity: parseInt(row.Quantity) || 1,
               condition: row.Condition || "New",
               category: row.Category || "",
@@ -132,6 +132,7 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="New">New</SelectItem>
+              <SelectItem value="Refurbished">Refurbished</SelectItem>
               <SelectItem value="Used - Like New">Used - Like New</SelectItem>
               <SelectItem value="Used - Good">Used - Good</SelectItem>
               <SelectItem value="Used - Acceptable">
