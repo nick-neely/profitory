@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from 'react'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Product } from "@/hooks/useProducts";
-import { EditProductForm } from './EditProductForm'
-import { DeleteConfirmationModal } from './DeleteConfirmationModal'
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { ArrowUpDown, Filter, SortAsc, SortDesc } from 'lucide-react'
+import { ArrowUpDown, Filter, SortAsc, SortDesc } from 'lucide-react';
+import { useState } from 'react';
+import { DeleteConfirmationModal } from './DeleteConfirmationModal';
+import { EditProductForm } from './EditProductForm';
 
 interface ProductTableProps {
   products: Product[]
@@ -23,7 +23,6 @@ type SortConfig = {
 export function ProductTable({ products, onRemoveProduct, onEditProduct }: ProductTableProps) {
   const [filters, setFilters] = useState<Partial<Record<keyof Product, string>>>({})
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'brand', direction: 'asc' })
-  const [showSortInputs, setShowSortInputs] = useState(false)
   const [showFilterInputs, setShowFilterInputs] = useState(false)
 
   const handleFilterChange = (key: keyof Product, value: string) => {
@@ -56,7 +55,15 @@ export function ProductTable({ products, onRemoveProduct, onEditProduct }: Produ
       className="h-8 px-2 lg:px-3"
     >
       {label}
-      <ArrowUpDown className="ml-2 h-4 w-4" />
+      {sortConfig.key === key ? (
+        sortConfig.direction === 'asc' ? (
+          <SortAsc className="ml-2 h-4 w-4" />
+        ) : (
+          <SortDesc className="ml-2 h-4 w-4" />
+        )
+      ) : (
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      )}
     </Button>
   )
 
@@ -65,13 +72,6 @@ export function ProductTable({ products, onRemoveProduct, onEditProduct }: Produ
   return (
     <div className="space-y-4">
       <div className="flex space-x-2 mb-4">
-        <Button
-          variant="outline"
-          onClick={() => setShowSortInputs(!showSortInputs)}
-          title={showSortInputs ? "Hide Sort" : "Show Sort"}
-        >
-          {showSortInputs ? <SortDesc className="h-4 w-4" /> : <SortAsc className="h-4 w-4" />}
-        </Button>
         <Button
           variant="outline"
           onClick={() => setShowFilterInputs(!showFilterInputs)}
@@ -85,7 +85,7 @@ export function ProductTable({ products, onRemoveProduct, onEditProduct }: Produ
           <TableRow>
             {columns.map(column => (
               <TableHead key={column}>
-                {showSortInputs ? renderSortButton(column, column.charAt(0).toUpperCase() + column.slice(1)) : column.charAt(0).toUpperCase() + column.slice(1)}
+                {renderSortButton(column, column.charAt(0).toUpperCase() + column.slice(1))}
               </TableHead>
             ))}
             <TableHead>Value</TableHead>
