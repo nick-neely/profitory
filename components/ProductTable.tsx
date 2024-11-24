@@ -1,52 +1,95 @@
-"use client"
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Product } from "@/hooks/useProducts";
-import { ArrowUpDown, Filter, SortAsc, SortDesc } from 'lucide-react';
-import { useState } from 'react';
-import { DeleteConfirmationModal } from './DeleteConfirmationModal';
-import { EditProductForm } from './EditProductForm';
+import {
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  SortAsc,
+  SortDesc,
+} from "lucide-react";
+import { useState } from "react";
+import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import { EditProductForm } from "./EditProductForm";
 
 interface ProductTableProps {
-  products: Product[]
-  onRemoveProduct: (id: string) => void
-  onEditProduct: (id: string, product: Omit<Product, 'id'>) => void
+  products: Product[];
+  onRemoveProduct: (id: string) => void;
+  onEditProduct: (id: string, product: Omit<Product, "id">) => void;
 }
 
 type SortConfig = {
-  key: keyof Product
-  direction: 'asc' | 'desc'
-}
+  key: keyof Product;
+  direction: "asc" | "desc";
+};
 
-export function ProductTable({ products, onRemoveProduct, onEditProduct }: ProductTableProps) {
-  const [filters, setFilters] = useState<Partial<Record<keyof Product, string>>>({})
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'brand', direction: 'asc' })
-  const [showFilterInputs, setShowFilterInputs] = useState(false)
+export function ProductTable({
+  products,
+  onRemoveProduct,
+  onEditProduct,
+}: ProductTableProps) {
+  const [filters, setFilters] = useState<
+    Partial<Record<keyof Product, string>>
+  >({});
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    key: "brand",
+    direction: "asc",
+  });
+  const [showFilterInputs, setShowFilterInputs] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const handleFilterChange = (key: keyof Product, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }))
-  }
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
 
   const handleSort = (key: keyof Product) => {
-    setSortConfig(prev => ({
+    setSortConfig((prev) => ({
       key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
-    }))
-  }
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  };
 
-  const filteredProducts = products.filter(product => 
-    Object.entries(filters).every(([key, value]) => 
-      String(product[key as keyof Product]).toLowerCase().includes(value.toLowerCase())
+  const filteredProducts = products.filter((product) =>
+    Object.entries(filters).every(([key, value]) =>
+      String(product[key as keyof Product])
+        .toLowerCase()
+        .includes(value.toLowerCase())
     )
-  )
+  );
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'asc' ? -1 : 1
-    if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'asc' ? 1 : -1
-    return 0
-  })
+    if (a[sortConfig.key] < b[sortConfig.key])
+      return sortConfig.direction === "asc" ? -1 : 1;
+    if (a[sortConfig.key] > b[sortConfig.key])
+      return sortConfig.direction === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
+  const paginatedProducts = sortedProducts.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const renderSortButton = (key: keyof Product, label: string) => (
     <Button
@@ -56,7 +99,7 @@ export function ProductTable({ products, onRemoveProduct, onEditProduct }: Produ
     >
       {label}
       {sortConfig.key === key ? (
-        sortConfig.direction === 'asc' ? (
+        sortConfig.direction === "asc" ? (
           <SortAsc className="ml-2 h-4 w-4" />
         ) : (
           <SortDesc className="ml-2 h-4 w-4" />
@@ -65,27 +108,60 @@ export function ProductTable({ products, onRemoveProduct, onEditProduct }: Produ
         <ArrowUpDown className="ml-2 h-4 w-4" />
       )}
     </Button>
-  )
+  );
 
-  const columns: (keyof Product)[] = ['brand', 'name', 'price', 'quantity', 'condition', 'category']
+  const columns: (keyof Product)[] = [
+    "brand",
+    "name",
+    "price",
+    "quantity",
+    "condition",
+    "category",
+  ];
 
   return (
     <div className="space-y-4">
-      <div className="flex space-x-2 mb-4">
-        <Button
-          variant="outline"
-          onClick={() => setShowFilterInputs(!showFilterInputs)}
-          title={showFilterInputs ? "Hide Filters" : "Show Filters"}
-        >
-          <Filter className="h-4 w-4" />
-        </Button>
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            onClick={() => setShowFilterInputs(!showFilterInputs)}
+            title={showFilterInputs ? "Hide Filters" : "Show Filters"}
+          >
+            <Filter className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-muted-foreground">Items per page:</span>
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={(value) => {
+              setItemsPerPage(Number(value));
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[100px]">
+              <SelectValue>{itemsPerPage}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {[5, 10, 20, 50, 100].map((value) => (
+                <SelectItem key={value} value={String(value)}>
+                  {value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <Table>
         <TableHeader>
           <TableRow>
-            {columns.map(column => (
+            {columns.map((column) => (
               <TableHead key={column}>
-                {renderSortButton(column, column.charAt(0).toUpperCase() + column.slice(1))}
+                {renderSortButton(
+                  column,
+                  column.charAt(0).toUpperCase() + column.slice(1)
+                )}
               </TableHead>
             ))}
             <TableHead>Value</TableHead>
@@ -93,11 +169,11 @@ export function ProductTable({ products, onRemoveProduct, onEditProduct }: Produ
           </TableRow>
           {showFilterInputs && (
             <TableRow>
-              {columns.map(column => (
+              {columns.map((column) => (
                 <TableHead key={`filter-${column}`}>
                   <Input
                     placeholder={`Filter ${column}`}
-                    value={filters[column] || ''}
+                    value={filters[column] || ""}
                     onChange={(e) => handleFilterChange(column, e.target.value)}
                     className="max-w-sm"
                   />
@@ -109,19 +185,26 @@ export function ProductTable({ products, onRemoveProduct, onEditProduct }: Produ
           )}
         </TableHeader>
         <TableBody>
-          {sortedProducts.map((product) => (
+          {paginatedProducts.map((product) => (
             <TableRow key={product.id}>
-              {columns.map(column => (
+              {columns.map((column) => (
                 <TableCell key={`${product.id}-${column}`}>
-                  {column === 'price' ? `$${product[column].toFixed(2)}` : product[column]}
+                  {column === "price"
+                    ? `$${product[column].toFixed(2)}`
+                    : product[column]}
                 </TableCell>
               ))}
-              <TableCell>${(product.price * product.quantity).toFixed(2)}</TableCell>
+              <TableCell>
+                ${(product.price * product.quantity).toFixed(2)}
+              </TableCell>
               <TableCell>
                 <div className="flex space-x-2">
-                  <EditProductForm product={product} onEditProduct={onEditProduct} />
-                  <DeleteConfirmationModal 
-                    onConfirm={() => onRemoveProduct(product.id)} 
+                  <EditProductForm
+                    product={product}
+                    onEditProduct={onEditProduct}
+                  />
+                  <DeleteConfirmationModal
+                    onConfirm={() => onRemoveProduct(product.id)}
                     productName={product.name}
                   />
                 </div>
@@ -135,17 +218,61 @@ export function ProductTable({ products, onRemoveProduct, onEditProduct }: Produ
               Totals
             </TableCell>
             <TableCell className="font-medium">
-              {sortedProducts.reduce((total, product) => total + product.quantity, 0)} items
+              {sortedProducts.reduce(
+                (total, product) => total + product.quantity,
+                0
+              )}{" "}
+              items
             </TableCell>
             <TableCell className="font-medium">
-              ${sortedProducts.reduce((total, product) => total + product.price * product.quantity, 0).toFixed(2)}
+              $
+              {sortedProducts
+                .reduce(
+                  (total, product) => total + product.price * product.quantity,
+                  0
+                )
+                .toFixed(2)}
             </TableCell>
             <TableCell></TableCell>
-            <TableCell></TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell colSpan={8}>
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                  {Math.min(currentPage * itemsPerPage, sortedProducts.length)}{" "}
+                  of {sortedProducts.length} items
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <div className="text-sm">
+                    Page {currentPage} of {totalPages}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </TableCell>
           </TableRow>
         </TableFooter>
       </Table>
     </div>
-  )
+  );
 }
-
