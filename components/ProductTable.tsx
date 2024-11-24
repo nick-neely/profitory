@@ -1,11 +1,16 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   ContextMenu,
+  ContextMenuCheckboxItem,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { Input } from "@/components/ui/input";
@@ -91,6 +96,31 @@ export function ProductTable({
   const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  const defaultColumns: (keyof Product)[] = [
+    "brand",
+    "name",
+    "price",
+    "quantity",
+    "condition",
+    "category",
+  ];
+
+  const [columns, setColumns] = useState<(keyof Product)[]>(defaultColumns);
+
+  const toggleColumn = (column: keyof Product) => {
+    setColumns((prev) =>
+      prev.includes(column)
+        ? prev.filter((col) => col !== column)
+        : [...prev, column]
+    );
+  };
+
+  const resetColumns = () => {
+    setColumns(defaultColumns);
+  };
+
+  const hiddenColumnsCount = defaultColumns.length - columns.length;
 
   const handleFilterChange = (key: keyof Product, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -244,15 +274,6 @@ export function ProductTable({
     );
   };
 
-  const columns: (keyof Product)[] = [
-    "brand",
-    "name",
-    "price",
-    "quantity",
-    "condition",
-    "category",
-  ];
-
   const handleRowClick = (product: Product) => {
     return () => {
       setSelectedProduct(product);
@@ -355,6 +376,31 @@ export function ProductTable({
               </ContextMenuItem>
             </>
           )}
+          <ContextMenuSub>
+            <ContextMenuSubTrigger>
+              Column Visibility
+              {hiddenColumnsCount > 0 && (
+                <Badge variant="secondary" className="ml-2">
+                  {hiddenColumnsCount}
+                </Badge>
+              )}
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+              {defaultColumns.map((col) => (
+                <ContextMenuCheckboxItem
+                  key={col}
+                  checked={columns.includes(col)}
+                  onCheckedChange={() => toggleColumn(col)}
+                >
+                  {col.charAt(0).toUpperCase() + col.slice(1)}
+                </ContextMenuCheckboxItem>
+              ))}
+              <ContextMenuSeparator />
+              <ContextMenuItem onClick={resetColumns}>
+                Reset Columns
+              </ContextMenuItem>
+            </ContextMenuSubContent>
+          </ContextMenuSub>
         </ContextMenuContent>
       </ContextMenu>
     );
