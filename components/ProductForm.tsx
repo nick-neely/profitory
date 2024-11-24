@@ -22,6 +22,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Upload } from "lucide-react";
 import Papa from "papaparse";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { Label } from "./ui/label";
 
 interface ProductFormProps {
@@ -57,25 +58,46 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
         header: true,
         skipEmptyLines: true,
         complete: (results: Papa.ParseResult<CSVRow>) => {
-          const products: Omit<Product, "id">[] = results.data.map(
-            (row: CSVRow) => ({
-              brand: row.Brand || "",
-              name: row.Name || "",
-              price: parseFloat(row.Price.replace(/[$,]/g, "")) || 0,
-              quantity: parseInt(row.Quantity) || 1,
-              condition: row.Condition || "New",
-              category: row.Category || "",
-            })
-          );
-          onAddProduct(products);
+          try {
+            const products: Omit<Product, "id">[] = results.data.map(
+              (row: CSVRow) => ({
+                brand: row.Brand || "",
+                name: row.Name || "",
+                price: parseFloat(row.Price.replace(/[$,]/g, "")) || 0,
+                quantity: parseInt(row.Quantity) || 1,
+                condition: row.Condition || "New",
+                category: row.Category || "",
+              })
+            );
+            onAddProduct(products);
+            toast.success("CSV Import Successful", {
+              description: `Added ${products.length} products to inventory`,
+            });
+          } catch (error) {
+            toast.error("Failed to import CSV", {
+              description:
+                error instanceof Error
+                  ? error.message
+                  : "Unknown error occurred",
+            });
+          }
         },
       });
     }
   };
 
   const onSubmit = (data: ProductFormValues) => {
-    onAddProduct(data);
-    form.reset();
+    try {
+      onAddProduct(data);
+      toast.success("Product added successfully", {
+        description: `Added ${data.name} to inventory`,
+      });
+      form.reset();
+    } catch (error) {
+      toast.error("Failed to add product", {
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+      });
+    }
   };
 
   return (
