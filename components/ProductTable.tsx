@@ -31,10 +31,10 @@ import {
   ChevronRight,
   Download,
   Filter,
+  Loader2,
   SortAsc,
   SortDesc,
   Trash,
-  Loader2,
 } from "lucide-react";
 import { useState } from "react";
 import { DeleteAllConfirmationModal } from "./DeleteAllConfirmationModal";
@@ -189,7 +189,12 @@ export function ProductTable({
                 <TooltipTrigger asChild>
                   <Button
                     variant="outline"
-                    onClick={() => setShowFilterInputs(!showFilterInputs)}
+                    onClick={() => {
+                      if (showFilterInputs) {
+                        setFilters({});
+                      }
+                      setShowFilterInputs(!showFilterInputs);
+                    }}
                   >
                     <Filter className="h-4 w-4" />
                   </Button>
@@ -244,7 +249,9 @@ export function ProductTable({
             </TooltipProvider>
           </div>
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-muted-foreground">Items per page:</span>
+            <span className="text-sm text-muted-foreground">
+              Items per page:
+            </span>
             <Select
               value={String(itemsPerPage)}
               onValueChange={(value) => {
@@ -336,7 +343,8 @@ export function ProductTable({
               <TableCell className="font-medium">
                 {formatCurrency(
                   sortedProducts.reduce(
-                    (total, product) => total + product.price * product.quantity,
+                    (total, product) =>
+                      total + product.price * product.quantity,
                     0
                   )
                 )}
@@ -348,7 +356,10 @@ export function ProductTable({
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-muted-foreground">
                     Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                    {Math.min(currentPage * itemsPerPage, sortedProducts.length)}{" "}
+                    {Math.min(
+                      currentPage * itemsPerPage,
+                      sortedProducts.length
+                    )}{" "}
                     of {sortedProducts.length} items
                   </div>
                   <div className="flex items-center space-x-2">
