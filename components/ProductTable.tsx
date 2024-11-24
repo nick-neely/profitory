@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/tooltip";
 import { PRODUCT_CONDITIONS } from "@/constants";
 import { Product } from "@/hooks/useProducts";
-import { formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import {
   ArrowUpDown,
   ChevronLeft,
@@ -281,8 +281,37 @@ export function ProductTable({
     };
   };
 
+  const [pinnedColumns, setPinnedColumns] = useState<{
+    left: (keyof Product)[];
+    right: (keyof Product)[];
+  }>({
+    left: [],
+    right: [],
+  });
+
+  const pinColumn = (column: keyof Product, position: "left" | "right") => {
+    setPinnedColumns((prev) => {
+      const otherPosition = position === "left" ? "right" : "left";
+      return {
+        ...prev,
+        [position]: [...prev[position], column],
+        [otherPosition]: prev[otherPosition].filter((col) => col !== column),
+      };
+    });
+  };
+
+  const unpinColumn = (column: keyof Product) => {
+    setPinnedColumns((prev) => ({
+      left: prev.left.filter((col) => col !== column),
+      right: prev.right.filter((col) => col !== column),
+    }));
+  };
+
   const renderColumnHeader = (column: keyof Product) => {
     const label = column.charAt(0).toUpperCase() + column.slice(1);
+    const isPinnedLeft = pinnedColumns.left.includes(column);
+    const isPinnedRight = pinnedColumns.right.includes(column);
+    const isPinned = isPinnedLeft || isPinnedRight;
 
     return (
       <ContextMenu>
@@ -290,7 +319,10 @@ export function ProductTable({
           <Button
             variant="ghost"
             onClick={() => handleSort(column)}
-            className="h-8 px-2 lg:px-3 w-full justify-start"
+            className={cn(
+              "h-8 px-2 lg:px-3 w-full justify-start",
+              isPinned && "bg-muted"
+            )}
           >
             {label}
             {sortConfig.key === column ? (
@@ -376,6 +408,33 @@ export function ProductTable({
               </ContextMenuItem>
             </>
           )}
+          <ContextMenuSeparator />
+          <ContextMenuSub>
+            <ContextMenuSubTrigger>
+              Column Pinning
+              {isPinned && (
+                <Badge variant="secondary" className="ml-2">
+                  {isPinnedLeft ? "Left" : "Right"}
+                </Badge>
+              )}
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+              <ContextMenuItem onClick={() => pinColumn(column, "left")}>
+                Pin to Left
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => pinColumn(column, "right")}>
+                Pin to Right
+              </ContextMenuItem>
+              {isPinned && (
+                <>
+                  <ContextMenuSeparator />
+                  <ContextMenuItem onClick={() => unpinColumn(column)}>
+                    Unpin Column
+                  </ContextMenuItem>
+                </>
+              )}
+            </ContextMenuSubContent>
+          </ContextMenuSub>
           <ContextMenuSub>
             <ContextMenuSubTrigger>
               Column Visibility
@@ -405,6 +464,17 @@ export function ProductTable({
       </ContextMenu>
     );
   };
+
+  const visibleColumns = columns;
+
+  const sortedColumns = [
+    ...pinnedColumns.left,
+    ...visibleColumns.filter(
+      (col) =>
+        !pinnedColumns.left.includes(col) && !pinnedColumns.right.includes(col)
+    ),
+    ...pinnedColumns.right,
+  ];
 
   return (
     <div className="space-y-6 py-4">
@@ -507,10 +577,22 @@ export function ProductTable({
         <Table>
           <TableHeader>
             <TableRow>
-              {columns.map((column) => (
-                <TableHead key={column}>{renderColumnHeader(column)}</TableHead>
+              {sortedColumns.map((column) => (
+                <TableHead
+                  key={column}
+                  className={cn(
+                    pinnedColumns.left.includes(column) &&
+                      "sticky left-0 bg-background",
+                    pinnedColumns.right.includes(column) &&
+                      "sticky right-0 bg-background"
+                  )}
+                >
+                  {renderColumnHeader(column)}
+                </TableHead>
               ))}
-              <TableHead>Action</TableHead>
+              <TableHead className="sticky right-0 bg-background">
+                Action
+              </TableHead>
             </TableRow>
             {showFilterInputs && (
               <TableRow>
@@ -530,14 +612,25 @@ export function ProductTable({
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={handleRowClick(product)}
               >
-                {columns.map((column) => (
-                  <TableCell key={`${product.id}-${column}`}>
+                {sortedColumns.map((column) => (
+                  <TableCell
+                    key={`${product.id}-${column}`}
+                    className={cn(
+                      pinnedColumns.left.includes(column) &&
+                        "sticky left-0 bg-background",
+                      pinnedColumns.right.includes(column) &&
+                        "sticky right-0 bg-background"
+                    )}
+                  >
                     {column === "price"
                       ? formatCurrency(product[column])
                       : product[column]}
                   </TableCell>
                 ))}
-                <TableCell onClick={(e) => e.stopPropagation()}>
+                <TableCell
+                  className="sticky right-0 bg-background"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="flex space-x-2">
                     <EditProductForm
                       product={product}
