@@ -1,6 +1,13 @@
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -10,22 +17,28 @@ import {
 } from "@/components/ui/select";
 import { PRODUCT_CONDITIONS } from "@/constants";
 import { Product } from "@/hooks/useProducts";
+import { productSchema, type ProductFormValues } from "@/lib/schemas/product";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Upload } from "lucide-react";
 import Papa from "papaparse";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Label } from "./ui/label";
 
 interface ProductFormProps {
   onAddProduct: (product: Omit<Product, "id"> | Omit<Product, "id">[]) => void;
 }
 
 export function ProductForm({ onAddProduct }: ProductFormProps) {
-  const [product, setProduct] = useState<Omit<Product, "id">>({
-    brand: "",
-    name: "",
-    price: 0,
-    quantity: 1,
-    condition: "New",
-    category: "",
+  const form = useForm<ProductFormValues>({
+    resolver: zodResolver(productSchema),
+    defaultValues: {
+      brand: "",
+      name: "",
+      price: 0,
+      quantity: 1,
+      condition: "New",
+      category: "",
+    },
   });
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,112 +73,126 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onAddProduct(product);
-    setProduct({
-      brand: "",
-      name: "",
-      price: 0,
-      quantity: 1,
-      condition: "New",
-      category: "",
-    });
+  const onSubmit = (data: ProductFormValues) => {
+    onAddProduct(data);
+    form.reset();
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 py-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="brand">Brand</Label>
-          <Input
-            id="brand"
-            value={product.brand}
-            onChange={(e) => setProduct({ ...product, brand: e.target.value })}
-            required
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="brand"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Brand</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Item Name</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Selling Price</FormLabel>
+                <FormControl>
+                  <Input type="number" min="0" step="0.01" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="quantity"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Quantity</FormLabel>
+                <FormControl>
+                  <Input type="number" min="1" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="condition"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Condition</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {PRODUCT_CONDITIONS.map((condition) => (
+                      <SelectItem key={condition} value={condition}>
+                        {condition}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
-        <div>
-          <Label htmlFor="name">Item Name</Label>
+
+        <div className="flex space-x-2">
+          <Button type="submit">Add Product</Button>
+          <Label htmlFor="csvFile" className="flex items-center cursor-pointer">
+            <Upload className="mr-2 h-4 w-4" />
+            Import CSV
+          </Label>
           <Input
-            id="name"
-            value={product.name}
-            onChange={(e) => setProduct({ ...product, name: e.target.value })}
-            required
+            id="csvFile"
+            type="file"
+            accept=".csv"
+            onChange={handleFileUpload}
+            className="hidden"
           />
         </div>
-        <div>
-          <Label htmlFor="price">Selling Price</Label>
-          <Input
-            id="price"
-            type="number"
-            value={product.price}
-            onChange={(e) =>
-              setProduct({ ...product, price: parseFloat(e.target.value) })
-            }
-            required
-            min="0"
-            step="0.01"
-          />
-        </div>
-        <div>
-          <Label htmlFor="quantity">Quantity</Label>
-          <Input
-            id="quantity"
-            type="number"
-            value={product.quantity}
-            onChange={(e) =>
-              setProduct({ ...product, quantity: parseInt(e.target.value) })
-            }
-            required
-            min="1"
-          />
-        </div>
-        <div>
-          <Label htmlFor="condition">Condition</Label>
-          <Select
-            onValueChange={(value) =>
-              setProduct({ ...product, condition: value })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select condition" />
-            </SelectTrigger>
-            <SelectContent>
-              {PRODUCT_CONDITIONS.map((condition) => (
-                <SelectItem key={condition} value={condition}>
-                  {condition}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="category">Category</Label>
-          <Input
-            id="category"
-            value={product.category}
-            onChange={(e) =>
-              setProduct({ ...product, category: e.target.value })
-            }
-            required
-          />
-        </div>
-      </div>
-      <div className="flex space-x-2">
-        <Button type="submit">Add Product</Button>
-        <Label htmlFor="csvFile" className="flex items-center cursor-pointer">
-          <Upload className="mr-2 h-4 w-4" />
-          Import CSV
-        </Label>
-        <Input
-          id="csvFile"
-          type="file"
-          accept=".csv"
-          onChange={handleFileUpload}
-          className="hidden"
-        />
-      </div>
-    </form>
+      </form>
+    </Form>
   );
 }
