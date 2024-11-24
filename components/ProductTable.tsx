@@ -34,6 +34,7 @@ import {
   SortAsc,
   SortDesc,
   Trash,
+  Loader2,
 } from "lucide-react";
 import { useState } from "react";
 import { DeleteAllConfirmationModal } from "./DeleteAllConfirmationModal";
@@ -49,6 +50,7 @@ const formatCurrency = (amount: number) => {
 
 interface ProductTableProps {
   products: Product[];
+  isLoading: boolean;
   onRemoveProduct: (id: string) => void;
   onEditProduct: (id: string, product: Omit<Product, "id">) => void;
   onRemoveAllProducts: () => void;
@@ -61,6 +63,7 @@ type SortConfig = {
 
 export function ProductTable({
   products,
+  isLoading,
   onRemoveProduct,
   onEditProduct,
   onRemoveAllProducts,
@@ -173,204 +176,217 @@ export function ProductTable({
 
   return (
     <div className="space-y-6 py-4">
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex space-x-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowFilterInputs(!showFilterInputs)}
-                >
-                  <Filter className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{showFilterInputs ? "Hide Filters" : "Show Filters"}</p>
-              </TooltipContent>
-            </Tooltip>
+      <div className="relative">
+        {isLoading && (
+          <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        )}
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex space-x-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowFilterInputs(!showFilterInputs)}
+                  >
+                    <Filter className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{showFilterInputs ? "Hide Filters" : "Show Filters"}</p>
+                </TooltipContent>
+              </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  onClick={exportToCSV}
-                  disabled={sortedProducts.length === 0}
-                >
-                  <Download
-                    className={`h-4 w-4 ${
-                      sortedProducts.length === 0 ? "text-muted-foreground" : ""
-                    }`}
-                  />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Export to CSV</p>
-              </TooltipContent>
-            </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={exportToCSV}
+                    disabled={sortedProducts.length === 0}
+                  >
+                    <Download
+                      className={`h-4 w-4 ${
+                        sortedProducts.length === 0
+                          ? "text-muted-foreground"
+                          : ""
+                      }`}
+                    />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Export to CSV</p>
+                </TooltipContent>
+              </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDeleteAllModalOpen(true)}
-                  disabled={sortedProducts.length === 0}
-                  className="hover:bg-red-500 hover:text-white"
-                >
-                  <Trash
-                    className={`h-4 w-4 ${
-                      sortedProducts.length === 0 ? "text-muted-foreground" : ""
-                    }`}
-                  />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Delete All Products</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDeleteAllModalOpen(true)}
+                    disabled={sortedProducts.length === 0}
+                    className="hover:bg-red-500 hover:text-white"
+                  >
+                    <Trash
+                      className={`h-4 w-4 ${
+                        sortedProducts.length === 0
+                          ? "text-muted-foreground"
+                          : ""
+                      }`}
+                    />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete All Products</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-muted-foreground">Items per page:</span>
+            <Select
+              value={String(itemsPerPage)}
+              onValueChange={(value) => {
+                setItemsPerPage(Number(value));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[100px]">
+                <SelectValue>{itemsPerPage}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {[5, 10, 20, 50, 100].map((value) => (
+                  <SelectItem key={value} value={String(value)}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-muted-foreground">Items per page:</span>
-          <Select
-            value={String(itemsPerPage)}
-            onValueChange={(value) => {
-              setItemsPerPage(Number(value));
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="w-[100px]">
-              <SelectValue>{itemsPerPage}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {[5, 10, 20, 50, 100].map((value) => (
-                <SelectItem key={value} value={String(value)}>
-                  {value}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            {columns.map((column) => (
-              <TableHead key={column}>
-                {renderSortButton(
-                  column,
-                  column.charAt(0).toUpperCase() + column.slice(1)
-                )}
-              </TableHead>
-            ))}
-            <TableHead>Action</TableHead>
-          </TableRow>
-          {showFilterInputs && (
+        <Table>
+          <TableHeader>
             <TableRow>
               {columns.map((column) => (
-                <TableHead key={`filter-${column}`}>
-                  <Input
-                    placeholder={`Filter ${column}`}
-                    value={filters[column] || ""}
-                    onChange={(e) => handleFilterChange(column, e.target.value)}
-                    className="max-w-sm"
-                  />
+                <TableHead key={column}>
+                  {renderSortButton(
+                    column,
+                    column.charAt(0).toUpperCase() + column.slice(1)
+                  )}
                 </TableHead>
               ))}
-              <TableHead></TableHead>
+              <TableHead>Action</TableHead>
             </TableRow>
-          )}
-        </TableHeader>
-        <TableBody>
-          {paginatedProducts.map((product) => (
-            <TableRow key={product.id}>
-              {columns.map((column) => (
-                <TableCell key={`${product.id}-${column}`}>
-                  {column === "price"
-                    ? formatCurrency(product[column])
-                    : product[column]}
+            {showFilterInputs && (
+              <TableRow>
+                {columns.map((column) => (
+                  <TableHead key={`filter-${column}`}>
+                    <Input
+                      placeholder={`Filter ${column}`}
+                      value={filters[column] || ""}
+                      onChange={(e) =>
+                        handleFilterChange(column, e.target.value)
+                      }
+                      className="max-w-sm"
+                    />
+                  </TableHead>
+                ))}
+                <TableHead></TableHead>
+              </TableRow>
+            )}
+          </TableHeader>
+          <TableBody>
+            {paginatedProducts.map((product) => (
+              <TableRow key={product.id}>
+                {columns.map((column) => (
+                  <TableCell key={`${product.id}-${column}`}>
+                    {column === "price"
+                      ? formatCurrency(product[column])
+                      : product[column]}
+                  </TableCell>
+                ))}
+                <TableCell>
+                  <div className="flex space-x-2">
+                    <EditProductForm
+                      product={product}
+                      onEditProduct={onEditProduct}
+                    />
+                    <DeleteConfirmationModal
+                      onConfirm={() => onRemoveProduct(product.id)}
+                      productName={product.name}
+                    />
+                  </div>
                 </TableCell>
-              ))}
-              <TableCell>
-                <div className="flex space-x-2">
-                  <EditProductForm
-                    product={product}
-                    onEditProduct={onEditProduct}
-                  />
-                  <DeleteConfirmationModal
-                    onConfirm={() => onRemoveProduct(product.id)}
-                    productName={product.name}
-                  />
+              </TableRow>
+            ))}
+          </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={4} className="font-medium">
+                Totals
+              </TableCell>
+              <TableCell className="font-medium">
+                {sortedProducts.reduce(
+                  (total, product) => total + product.quantity,
+                  0
+                )}{" "}
+                items
+              </TableCell>
+              <TableCell className="font-medium">
+                {formatCurrency(
+                  sortedProducts.reduce(
+                    (total, product) => total + product.price * product.quantity,
+                    0
+                  )
+                )}
+              </TableCell>
+              <TableCell></TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell colSpan={8}>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                    {Math.min(currentPage * itemsPerPage, sortedProducts.length)}{" "}
+                    of {sortedProducts.length} items
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(1, prev - 1))
+                      }
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <div className="text-sm">
+                      Page {currentPage} of {totalPages}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                      }
+                      disabled={currentPage === totalPages}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TableCell colSpan={4} className="font-medium">
-              Totals
-            </TableCell>
-            <TableCell className="font-medium">
-              {sortedProducts.reduce(
-                (total, product) => total + product.quantity,
-                0
-              )}{" "}
-              items
-            </TableCell>
-            <TableCell className="font-medium">
-              {formatCurrency(
-                sortedProducts.reduce(
-                  (total, product) => total + product.price * product.quantity,
-                  0
-                )
-              )}
-            </TableCell>
-            <TableCell></TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell colSpan={8}>
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                  Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                  {Math.min(currentPage * itemsPerPage, sortedProducts.length)}{" "}
-                  of {sortedProducts.length} items
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(1, prev - 1))
-                    }
-                    disabled={currentPage === 1}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <div className="text-sm">
-                    Page {currentPage} of {totalPages}
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                    }
-                    disabled={currentPage === totalPages}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </TableCell>
-          </TableRow>
-        </TableFooter>
-      </Table>
-      <DeleteAllConfirmationModal
-        isOpen={isDeleteAllModalOpen}
-        onOpenChange={setIsDeleteAllModalOpen}
-        onConfirm={onRemoveAllProducts}
-      />
+          </TableFooter>
+        </Table>
+        <DeleteAllConfirmationModal
+          isOpen={isDeleteAllModalOpen}
+          onOpenChange={setIsDeleteAllModalOpen}
+          onConfirm={onRemoveAllProducts}
+        />
+      </div>
     </div>
   );
 }

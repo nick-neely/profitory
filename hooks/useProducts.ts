@@ -16,11 +16,13 @@ const generateId = () => {
 
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedProducts = localStorage.getItem("ebayProducts");
       setProducts(storedProducts ? JSON.parse(storedProducts) : []);
+      setIsLoading(false);
     }
   }, []);
 
@@ -57,6 +59,7 @@ export function useProducts() {
 
   return {
     products,
+    isLoading,
     addProduct,
     removeProduct,
     editProduct,

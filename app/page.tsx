@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 export default function Home() {
   const {
     products,
+    isLoading,
     addProduct,
     removeProduct,
     editProduct,
@@ -38,6 +39,7 @@ export default function Home() {
             <div className="p-4 overflow-x-auto">
               <ProductTable
                 products={products}
+                isLoading={isLoading}
                 onRemoveProduct={removeProduct}
                 onEditProduct={editProduct}
                 onRemoveAllProducts={removeAllProducts}
