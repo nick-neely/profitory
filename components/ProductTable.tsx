@@ -18,6 +18,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Product } from "@/hooks/useProducts";
 import {
   ArrowUpDown,
@@ -33,6 +39,13 @@ import { useState } from "react";
 import { DeleteAllConfirmationModal } from "./DeleteAllConfirmationModal";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import { EditProductForm } from "./EditProductForm";
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(amount);
+};
 
 interface ProductTableProps {
   products: Product[];
@@ -109,7 +122,7 @@ export function ProductTable({
     const rows = sortedProducts.map((product) => [
       product.brand,
       product.name,
-      `$${product.price.toFixed(2)}`,
+      formatCurrency(product.price),
       product.quantity,
       product.condition,
       product.category,
@@ -162,38 +175,60 @@ export function ProductTable({
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-4">
         <div className="flex space-x-2">
-          <Button
-            variant="outline"
-            onClick={() => setShowFilterInputs(!showFilterInputs)}
-            title={showFilterInputs ? "Hide Filters" : "Show Filters"}
-          >
-            <Filter className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            onClick={exportToCSV}
-            title="Export to CSV"
-            disabled={sortedProducts.length === 0}
-          >
-            <Download
-              className={`h-4 w-4 ${
-                sortedProducts.length === 0 ? "text-muted-foreground" : ""
-              }`}
-            />
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setIsDeleteAllModalOpen(true)}
-            title="Delete All Products"
-            disabled={sortedProducts.length === 0}
-            className="hover:bg-red-500 hover:text-white"
-          >
-            <Trash
-              className={`h-4 w-4 ${
-                sortedProducts.length === 0 ? "text-muted-foreground" : ""
-              }`}
-            />
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowFilterInputs(!showFilterInputs)}
+                >
+                  <Filter className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{showFilterInputs ? "Hide Filters" : "Show Filters"}</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  onClick={exportToCSV}
+                  disabled={sortedProducts.length === 0}
+                >
+                  <Download
+                    className={`h-4 w-4 ${
+                      sortedProducts.length === 0 ? "text-muted-foreground" : ""
+                    }`}
+                  />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Export to CSV</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDeleteAllModalOpen(true)}
+                  disabled={sortedProducts.length === 0}
+                  className="hover:bg-red-500 hover:text-white"
+                >
+                  <Trash
+                    className={`h-4 w-4 ${
+                      sortedProducts.length === 0 ? "text-muted-foreground" : ""
+                    }`}
+                  />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Delete All Products</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         <div className="flex items-center space-x-2">
           <span className="text-sm text-muted-foreground">Items per page:</span>
@@ -252,7 +287,7 @@ export function ProductTable({
               {columns.map((column) => (
                 <TableCell key={`${product.id}-${column}`}>
                   {column === "price"
-                    ? `$${product[column].toFixed(2)}`
+                    ? formatCurrency(product[column])
                     : product[column]}
                 </TableCell>
               ))}
@@ -284,13 +319,12 @@ export function ProductTable({
               items
             </TableCell>
             <TableCell className="font-medium">
-              $
-              {sortedProducts
-                .reduce(
+              {formatCurrency(
+                sortedProducts.reduce(
                   (total, product) => total + product.price * product.quantity,
                   0
                 )
-                .toFixed(2)}
+              )}
             </TableCell>
             <TableCell></TableCell>
           </TableRow>
