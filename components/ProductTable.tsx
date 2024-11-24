@@ -24,7 +24,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { PRODUCT_CONDITIONS } from "@/constants";
 import { Product } from "@/hooks/useProducts";
+import { formatCurrency } from "@/lib/utils";
 import {
   ArrowUpDown,
   ChevronLeft,
@@ -40,13 +42,7 @@ import { useState } from "react";
 import { DeleteAllConfirmationModal } from "./DeleteAllConfirmationModal";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import { EditProductForm } from "./EditProductForm";
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount);
-};
+import { PriceFilter } from "./PriceFilter";
 
 interface ProductTableProps {
   products: Product[];
@@ -61,6 +57,10 @@ type SortConfig = {
   direction: "asc" | "desc";
 };
 
+type PriceOperator = ">" | ">=" | "<" | "<=" | "=";
+type PriceFilter = { operator: PriceOperator; value: number } | null;
+type FilterValue = string | PriceFilter;
+
 export function ProductTable({
   products,
   isLoading,
@@ -68,9 +68,7 @@ export function ProductTable({
   onEditProduct,
   onRemoveAllProducts,
 }: ProductTableProps) {
-  const [filters, setFilters] = useState<
-    Partial<Record<keyof Product, string>>
-  >({});
+  const [filters, setFilters] = useState<Record<string, FilterValue>>({});
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: "brand",
     direction: "asc",
@@ -92,11 +90,31 @@ export function ProductTable({
   };
 
   const filteredProducts = products.filter((product) =>
-    Object.entries(filters).every(([key, value]) =>
-      String(product[key as keyof Product])
+    Object.entries(filters).every(([key, filter]) => {
+      if (!filter) return true;
+
+      if (key === "price") {
+        const priceFilter = filter as { operator: string; value: number };
+        switch (priceFilter.operator) {
+          case ">":
+            return product.price > priceFilter.value;
+          case ">=":
+            return product.price >= priceFilter.value;
+          case "<":
+            return product.price < priceFilter.value;
+          case "<=":
+            return product.price <= priceFilter.value;
+          case "=":
+            return product.price === priceFilter.value;
+          default:
+            return true;
+        }
+      }
+
+      return String(product[key as keyof Product])
         .toLowerCase()
-        .includes(value.toLowerCase())
-    )
+        .includes(String(filter).toLowerCase());
+    })
   );
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -164,6 +182,55 @@ export function ProductTable({
       )}
     </Button>
   );
+
+  const renderFilterInput = (column: keyof Product) => {
+    if (column === "condition") {
+      return (
+        <Select
+          value={
+            typeof filters[column] === "string"
+              ? (filters[column] as string)
+              : "all"
+          }
+          onValueChange={(value) =>
+            handleFilterChange(column, value === "all" ? "" : value)
+          }
+        >
+          <SelectTrigger className="max-w-sm">
+            <SelectValue placeholder={`Filter ${column}`} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            {PRODUCT_CONDITIONS.map((condition) => (
+              <SelectItem key={condition} value={condition}>
+                {condition}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      );
+    }
+
+    if (column === "price") {
+      return (
+        <PriceFilter
+          value={filters[column] as { operator: PriceOperator; value: number } | null}
+          onChange={(value) =>
+            setFilters((prev) => ({ ...prev, [column]: value }))
+          }
+        />
+      );
+    }
+
+    return (
+      <Input
+        placeholder={`Filter ${column}`}
+        value={(filters[column] as string) || ""}
+        onChange={(e) => handleFilterChange(column, e.target.value)}
+        className="max-w-sm"
+      />
+    );
+  };
 
   const columns: (keyof Product)[] = [
     "brand",
@@ -289,14 +356,7 @@ export function ProductTable({
               <TableRow>
                 {columns.map((column) => (
                   <TableHead key={`filter-${column}`}>
-                    <Input
-                      placeholder={`Filter ${column}`}
-                      value={filters[column] || ""}
-                      onChange={(e) =>
-                        handleFilterChange(column, e.target.value)
-                      }
-                      className="max-w-sm"
-                    />
+                    {renderFilterInput(column)}
                   </TableHead>
                 ))}
                 <TableHead></TableHead>

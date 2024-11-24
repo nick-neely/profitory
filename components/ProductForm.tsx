@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PRODUCT_CONDITIONS } from "@/constants";
 import { Product } from "@/hooks/useProducts";
 import { Upload } from "lucide-react";
 import Papa from "papaparse";
@@ -131,13 +132,11 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
               <SelectValue placeholder="Select condition" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="New">New</SelectItem>
-              <SelectItem value="Refurbished">Refurbished</SelectItem>
-              <SelectItem value="Used - Like New">Used - Like New</SelectItem>
-              <SelectItem value="Used - Good">Used - Good</SelectItem>
-              <SelectItem value="Used - Acceptable">
-                Used - Acceptable
-              </SelectItem>
+              {PRODUCT_CONDITIONS.map((condition) => (
+                <SelectItem key={condition} value={condition}>
+                  {condition}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
