@@ -443,7 +443,7 @@ export function ProductTable({
   const columnWidthsInit = useMemo(
     () => ({
       brand: 150,
-      name: 200,
+      name: 250,
       price: 100,
       quantity: 100,
       condition: 150,
