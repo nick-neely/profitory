@@ -209,6 +209,48 @@ export function ProductTable({
     document.body.removeChild(link);
   };
 
+  const exportColumn = (column: keyof Product, format: "csv") => {
+    const columnData = sortedProducts.map((product) => {
+      const value = product[column];
+      return column === "price"
+        ? formatCurrency(value as number)
+        : String(value);
+    });
+
+    if (format === "csv") {
+      const csvContent = [
+        `"${column}"`,
+        ...columnData.map((value) => `"${value}"`),
+      ].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `${column}.csv`);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const copyColumnToClipboard = async (column: keyof Product) => {
+    const columnData = sortedProducts
+      .map((product) => {
+        const value = product[column];
+        return column === "price"
+          ? formatCurrency(value as number)
+          : String(value);
+      })
+      .join(", ");
+
+    try {
+      await navigator.clipboard.writeText(columnData);
+    } catch (err) {
+      console.error("Failed to copy to clipboard:", err);
+    }
+  };
+
   const renderFilterInput = (column: keyof Product) => {
     if (column === "condition") {
       return (
@@ -409,6 +451,17 @@ export function ProductTable({
             </>
           )}
           <ContextMenuSeparator />
+          <ContextMenuSub>
+            <ContextMenuSubTrigger>Export</ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+              <ContextMenuItem onClick={() => exportColumn(column, "csv")}>
+                Export Column to CSV
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => copyColumnToClipboard(column)}>
+                Copy Column to Clipboard
+              </ContextMenuItem>
+            </ContextMenuSubContent>
+          </ContextMenuSub>
           <ContextMenuSub>
             <ContextMenuSubTrigger>
               Column Pinning
