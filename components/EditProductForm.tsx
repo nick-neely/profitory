@@ -1,25 +1,43 @@
-import { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Product } from "@/hooks/useProducts"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { PRODUCT_CONDITIONS } from "@/constants";
+import { Product } from "@/hooks/useProducts";
+import { useState } from "react";
 
 interface EditProductFormProps {
-  product: Product
-  onEditProduct: (id: string, product: Omit<Product, 'id'>) => void
+  product: Product;
+  onEditProduct: (id: string, product: Omit<Product, "id">) => void;
 }
 
-export function EditProductForm({ product, onEditProduct }: EditProductFormProps) {
-  const [editedProduct, setEditedProduct] = useState<Omit<Product, 'id'>>(product)
-  const [isOpen, setIsOpen] = useState(false)
+export function EditProductForm({
+  product,
+  onEditProduct,
+}: EditProductFormProps) {
+  const [editedProduct, setEditedProduct] =
+    useState<Omit<Product, "id">>(product);
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onEditProduct(product.id, editedProduct)
-    setIsOpen(false)
-  }
+    e.preventDefault();
+    onEditProduct(product.id, editedProduct);
+    setIsOpen(false);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -29,6 +47,9 @@ export function EditProductForm({ product, onEditProduct }: EditProductFormProps
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit Product</DialogTitle>
+          <DialogDescription>
+            Make changes to your product here. Click save when you're done.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -36,7 +57,9 @@ export function EditProductForm({ product, onEditProduct }: EditProductFormProps
             <Input
               id="edit-brand"
               value={editedProduct.brand}
-              onChange={(e) => setEditedProduct({ ...editedProduct, brand: e.target.value })}
+              onChange={(e) =>
+                setEditedProduct({ ...editedProduct, brand: e.target.value })
+              }
               required
             />
           </div>
@@ -45,7 +68,9 @@ export function EditProductForm({ product, onEditProduct }: EditProductFormProps
             <Input
               id="edit-name"
               value={editedProduct.name}
-              onChange={(e) => setEditedProduct({ ...editedProduct, name: e.target.value })}
+              onChange={(e) =>
+                setEditedProduct({ ...editedProduct, name: e.target.value })
+              }
               required
             />
           </div>
@@ -55,7 +80,12 @@ export function EditProductForm({ product, onEditProduct }: EditProductFormProps
               id="edit-price"
               type="number"
               value={editedProduct.price}
-              onChange={(e) => setEditedProduct({ ...editedProduct, price: parseFloat(e.target.value) })}
+              onChange={(e) =>
+                setEditedProduct({
+                  ...editedProduct,
+                  price: parseFloat(e.target.value),
+                })
+              }
               required
               min="0"
               step="0.01"
@@ -67,25 +97,33 @@ export function EditProductForm({ product, onEditProduct }: EditProductFormProps
               id="edit-quantity"
               type="number"
               value={editedProduct.quantity}
-              onChange={(e) => setEditedProduct({ ...editedProduct, quantity: parseInt(e.target.value) })}
+              onChange={(e) =>
+                setEditedProduct({
+                  ...editedProduct,
+                  quantity: parseInt(e.target.value),
+                })
+              }
               required
               min="1"
             />
           </div>
           <div>
             <Label htmlFor="edit-condition">Condition</Label>
-            <Select 
-              onValueChange={(value) => setEditedProduct({ ...editedProduct, condition: value })}
+            <Select
+              onValueChange={(value) =>
+                setEditedProduct({ ...editedProduct, condition: value })
+              }
               defaultValue={editedProduct.condition}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select condition" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="New">New</SelectItem>
-                <SelectItem value="Used - Like New">Used - Like New</SelectItem>
-                <SelectItem value="Used - Good">Used - Good</SelectItem>
-                <SelectItem value="Used - Acceptable">Used - Acceptable</SelectItem>
+                {PRODUCT_CONDITIONS.map((condition) => (
+                  <SelectItem key={condition} value={condition}>
+                    {condition}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -94,7 +132,9 @@ export function EditProductForm({ product, onEditProduct }: EditProductFormProps
             <Input
               id="edit-category"
               value={editedProduct.category}
-              onChange={(e) => setEditedProduct({ ...editedProduct, category: e.target.value })}
+              onChange={(e) =>
+                setEditedProduct({ ...editedProduct, category: e.target.value })
+              }
               required
             />
           </div>
@@ -102,6 +142,5 @@ export function EditProductForm({ product, onEditProduct }: EditProductFormProps
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-
