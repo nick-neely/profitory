@@ -73,7 +73,7 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6 py-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="brand">Brand</Label>

@@ -172,7 +172,7 @@ export function ProductTable({
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 py-4">
       <div className="flex justify-between items-center mb-4">
         <div className="flex space-x-2">
           <TooltipProvider>
