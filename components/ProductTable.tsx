@@ -47,6 +47,7 @@ import {
   type NumberFilter as TNumberFilter,
 } from "./NumberFilter";
 import { PriceFilter } from "./PriceFilter";
+import { ProductDetail } from "./ProductDetail";
 
 interface ProductTableProps {
   products: Product[];
@@ -81,6 +82,8 @@ export function ProductTable({
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const handleFilterChange = (key: keyof Product, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -262,6 +265,13 @@ export function ProductTable({
     "category",
   ];
 
+  const handleRowClick = (product: Product) => {
+    return () => {
+      setSelectedProduct(product);
+      setIsDetailOpen(true);
+    };
+  };
+
   return (
     <div className="space-y-6 py-4">
       <div className="relative">
@@ -386,7 +396,11 @@ export function ProductTable({
           </TableHeader>
           <TableBody>
             {paginatedProducts.map((product) => (
-              <TableRow key={product.id}>
+              <TableRow 
+                key={product.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={handleRowClick(product)}
+              >
                 {columns.map((column) => (
                   <TableCell key={`${product.id}-${column}`}>
                     {column === "price"
@@ -394,7 +408,7 @@ export function ProductTable({
                       : product[column]}
                   </TableCell>
                 ))}
-                <TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <div className="flex space-x-2">
                     <EditProductForm
                       product={product}
@@ -477,6 +491,11 @@ export function ProductTable({
           isOpen={isDeleteAllModalOpen}
           onOpenChange={setIsDeleteAllModalOpen}
           onConfirm={onRemoveAllProducts}
+        />
+        <ProductDetail
+          product={selectedProduct}
+          isOpen={isDetailOpen}
+          onOpenChange={setIsDetailOpen}
         />
       </div>
     </div>
