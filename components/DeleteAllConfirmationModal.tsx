@@ -107,7 +107,9 @@ export function DeleteAllConfirmationModal({
   }, [isOpen]);
 
   const handleConfirm = () => {
-    if (inputValue === confirmationPhrase) {
+    const normalizedInput = inputValue.replace(/\s/g, "");
+    const normalizedPhrase = confirmationPhrase.replace(/\s/g, "");
+    if (normalizedInput === normalizedPhrase) {
       onConfirm();
       onOpenChange(false);
     }
@@ -122,16 +124,18 @@ export function DeleteAllConfirmationModal({
             Are you sure you want to delete all products? This action cannot be
             undone. To confirm, please type the following phrase:
           </DialogDescription>
-          <div 
+          <div
             className="mt-2 font-mono bg-secondary p-3 rounded-md text-center select-none"
             onCopy={(e) => e.preventDefault()}
           >
-            {confirmationPhrase.split('').map((char, index) => (
-              <span 
+            {confirmationPhrase.split("").map((char, index) => (
+              <span
                 key={index}
-                className={char === '-' ? 'mx-2 text-muted-foreground' : 'font-semibold'}
+                className={
+                  char === "-" ? "mx-2 text-muted-foreground" : "font-semibold"
+                }
               >
-                {char}
+                {char === "-" ? " - " : char}
               </span>
             ))}
           </div>
@@ -150,7 +154,10 @@ export function DeleteAllConfirmationModal({
           <Button
             variant="destructive"
             onClick={handleConfirm}
-            disabled={inputValue !== confirmationPhrase}
+            disabled={
+              inputValue.replace(/\s/g, "") !==
+              confirmationPhrase.replace(/\s/g, "")
+            }
           >
             Delete All
           </Button>
