@@ -5,6 +5,12 @@ import { ProductForm } from "@/components/ProductForm";
 import { ProductTable } from "@/components/ProductTable";
 import { Statistics } from "@/components/Statistics";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useProducts } from "@/hooks/useProducts";
 import { Separator } from "@/components/ui/separator";
 
@@ -20,11 +26,17 @@ export default function Home() {
 
   return (
     <div className="container mx-auto py-6 space-y-8">
-      <div className="space-y-4">
-        <h2 className="text-lg font-medium">Add New Product</h2>
-        <Separator />
-        <ProductForm onAddProduct={addProduct} />
-      </div>
+      <Accordion type="single" collapsible defaultValue="add-product">
+        <AccordionItem value="add-product">
+          <AccordionTrigger className="text-lg font-medium">
+            Add New Product
+          </AccordionTrigger>
+          <AccordionContent>
+            <Separator className="my-4" />
+            <ProductForm onAddProduct={addProduct} />
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
       
       <div className="space-y-4">
         <h2 className="text-lg font-medium">Inventory</h2>
