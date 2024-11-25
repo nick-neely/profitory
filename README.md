@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Profitory 🚀
 
-## Getting Started
+## eBay Inventory Management & Analytics Platform
 
-First, run the development server:
+![Product Version](https://img.shields.io/badge/version-0.1.0-blue.svg)
+![Next.js](https://img.shields.io/badge/Next.js-14.2.16-black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+> 📦 Professional inventory tracking and analytics for eBay sellers
+
+## ✨ Features
+
+### 🎯 Core Functionality
+
+- **Smart Product Management**
+  - Add products individually or bulk import via CSV
+  - Track brand, name, price, quantity, condition & category
+  - Customizable table views with column pinning & resizing
+  - Context menu actions for quick operations
+
+### 📊 Data Visualization
+
+- **Real-time Statistics**
+  - Total inventory value
+  - Average product price
+  - Items by condition
+  - Category breakdowns
+
+### 💼 Business Tools
+
+- **Powerful Table Features**
+  - Advanced filtering & sorting
+  - Multi-column search
+  - CSV export/import
+  - Bulk operations
+  - Responsive pagination
+
+### 🎨 Modern UI/UX
+
+- **Clean Design**
+  - Built with shadcn/ui components
+  - Dark/Light theme support
+  - Responsive layout
+  - Smooth animations
+
+## 🚀 Getting Started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Install dependencies
+pnpm install
+
+# Run development server
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠 Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Frontend**: Next.js 14 with App Router
+- **Styling**: Tailwind CSS + shadcn/ui
+- **State Management**: React Hooks
+- **Data Persistence**: LocalStorage
+- **Icons**: Lucide Icons
+- **Forms**: React Hook Form + Zod
 
-## Learn More
+## 📝 Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+├── app/                  # Next.js app router
+├── components/
+│   ├── ui/              # Reusable UI components
+│   └── ...              # Feature components
+├── hooks/               # Custom React hooks
+├── lib/                 # Utility functions
+└── constants/           # App constants
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🔜 Upcoming Features
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- AI-powered insights and recommendations
+- Enhanced analytics and reporting
+- eBay integration
+- Multi-currency support
+- Advanced profit calculations
+- Inventory forecasting
+- Batch operations
+- Custom tags and categories
 
-## Deploy on Vercel
+## 💖 Contributing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+<p align="center">Made with ❤️ for eBay sellers</p>
