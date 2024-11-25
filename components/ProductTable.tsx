@@ -887,7 +887,10 @@ export function ProductTable({
             <TableHeader
               className={cn(
                 stickyHeader && "sticky top-0 z-10 bg-background",
-                "[&_tr]:bg-background"
+                "[&_tr]:bg-background",
+                // Make the border more visible
+                stickyHeader &&
+                  "[&_tr:first-child]:border-b-2 [&_tr:first-child]:border-border"
               )}
             >
               <TableRow>
@@ -1015,7 +1018,7 @@ export function ProductTable({
                 </TableCell>
                 <TableCell></TableCell>
               </TableRow>
-              <TableRow>
+              <TableRow className="bg-slate-50 dark:bg-slate-900">
                 <TableCell colSpan={8}>
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-muted-foreground">
