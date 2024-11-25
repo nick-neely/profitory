@@ -122,7 +122,19 @@ export function DeleteAllConfirmationModal({
             Are you sure you want to delete all products? This action cannot be
             undone. To confirm, please type the following phrase:
           </DialogDescription>
-          <div className="mt-2 font-semibold">{confirmationPhrase}</div>
+          <div 
+            className="mt-2 font-mono bg-secondary p-3 rounded-md text-center select-none"
+            onCopy={(e) => e.preventDefault()}
+          >
+            {confirmationPhrase.split('').map((char, index) => (
+              <span 
+                key={index}
+                className={char === '-' ? 'mx-2 text-muted-foreground' : 'font-semibold'}
+              >
+                {char}
+              </span>
+            ))}
+          </div>
         </DialogHeader>
         <div className="mt-4">
           <Input
