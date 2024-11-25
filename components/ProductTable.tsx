@@ -962,8 +962,9 @@ export function ProductTable({
                             onEditProduct={onEditProduct}
                           />
                           <Button
-                            variant="destructive"
+                            variant="outline"
                             onClick={() => setDeleteProduct(product)}
+                            className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30"
                           >
                             Remove
                           </Button>
