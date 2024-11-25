@@ -791,7 +791,7 @@ export function ProductTable({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    variant="outline"
+                    variant={showFilterInputs ? "secondary" : "outline"}
                     onClick={() => {
                       if (showFilterInputs) {
                         setFilters({});
