@@ -17,12 +17,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PRODUCT_CONDITIONS } from "@/constants";
-import { Product } from "@/hooks/useProducts";
+import { Product, ProductInput } from "@/hooks/useProducts";
 import { useState } from "react";
 
 interface EditProductFormProps {
   product: Product;
-  onEditProduct: (id: string, product: Omit<Product, "id">) => void;
+  onEditProduct: (id: string, product: ProductInput) => void;
 }
 
 export function EditProductForm({
@@ -48,7 +48,7 @@ export function EditProductForm({
         <DialogHeader>
           <DialogTitle>Edit Product</DialogTitle>
           <DialogDescription>
-            Make changes to your product here. Click save when you're done.
+            Make changes to your product here. Click save when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -72,6 +72,23 @@ export function EditProductForm({
                 setEditedProduct({ ...editedProduct, name: e.target.value })
               }
               required
+            />
+          </div>
+          <div>
+            <Label htmlFor="edit-cost">Purchase Cost</Label>
+            <Input
+              id="edit-cost"
+              type="number"
+              value={editedProduct.cost}
+              onChange={(e) =>
+                setEditedProduct({
+                  ...editedProduct,
+                  cost: parseFloat(e.target.value),
+                })
+              }
+              required
+              min="0"
+              step="0.01"
             />
           </div>
           <div>

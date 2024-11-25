@@ -37,7 +37,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { PRODUCT_CONDITIONS } from "@/constants";
-import { Product } from "@/hooks/useProducts";
+import { Product, ProductInput } from "@/hooks/useProducts";
 import { cn, formatCurrency } from "@/lib/utils";
 import {
   ArrowUpDown,
@@ -70,17 +70,19 @@ interface ColumnConstraints {
 const columnConstraints: ColumnConstraints = {
   brand: { minWidth: 100, maxWidth: 300 },
   name: { minWidth: 150, maxWidth: 400 },
-  price: { minWidth: 80, maxWidth: 150 },
-  quantity: { minWidth: 80, maxWidth: 150 },
+  price: { minWidth: 50, maxWidth: 100 },
+  quantity: { minWidth: 50, maxWidth: 100 },
   condition: { minWidth: 100, maxWidth: 250 },
   category: { minWidth: 100, maxWidth: 250 },
+  cost: { minWidth: 50, maxWidth: 100 },
+  profit: { minWidth: 50, maxWidth: 100 },
 };
 
 interface ProductTableProps {
   products: Product[];
   isLoading: boolean;
   onRemoveProduct: (id: string) => void;
-  onEditProduct: (id: string, product: Omit<Product, "id">) => void;
+  onEditProduct: (id: string, product: ProductInput) => void;
   onRemoveAllProducts: () => void;
 }
 
@@ -188,7 +190,16 @@ export function ProductTable({
   const [stickyHeader, setStickyHeader] = useState(true);
 
   const defaultColumns = useMemo<(keyof Product)[]>(
-    () => ["brand", "name", "price", "quantity", "condition", "category"],
+    () => [
+      "brand",
+      "name",
+      "cost",
+      "price",
+      "profit",
+      "quantity",
+      "condition",
+      "category",
+    ],
     []
   );
 
@@ -219,7 +230,16 @@ export function ProductTable({
     }));
   };
 
-  const filteredProducts = products.filter((product) =>
+  const productsWithProfit = useMemo(
+    () =>
+      products.map((product) => ({
+        ...product,
+        profit: product.price - product.cost,
+      })),
+    [products]
+  );
+
+  const filteredProducts = productsWithProfit.filter((product) =>
     Object.entries(filters).every(([key, filter]) => {
       if (!filter) return true;
 
@@ -266,7 +286,9 @@ export function ProductTable({
     const headers = [
       "Brand",
       "Name",
+      "Cost",
       "Price",
+      "Profit",
       "Quantity",
       "Condition",
       "Category",
@@ -274,7 +296,9 @@ export function ProductTable({
     const rows = sortedProducts.map((product) => [
       product.brand,
       product.name,
+      formatCurrency(product.cost),
       formatCurrency(product.price),
+      formatCurrency(product.profit),
       product.quantity,
       product.condition,
       product.category,
@@ -299,7 +323,7 @@ export function ProductTable({
     (column: keyof Product, format: "csv") => {
       const columnData = sortedProducts.map((product) => {
         const value = product[column];
-        return column === "price"
+        return column === "price" || column === "cost" || column === "profit"
           ? formatCurrency(value as number)
           : String(value);
       });
@@ -329,7 +353,7 @@ export function ProductTable({
       const columnData = sortedProducts
         .map((product) => {
           const value = product[column];
-          return column === "price"
+          return column === "price" || column === "cost" || column === "profit"
             ? formatCurrency(value as number)
             : String(value);
         })
@@ -446,8 +470,10 @@ export function ProductTable({
     () => ({
       brand: 150,
       name: 250,
-      price: 100,
-      quantity: 100,
+      cost: 60,
+      price: 60,
+      profit: 60,
+      quantity: 60,
       condition: 150,
       category: 150,
     }),
@@ -738,7 +764,7 @@ export function ProductTable({
       const headers = columns;
       const row = columns.map((column) => {
         const value = product[column];
-        return column === "price"
+        return column === "price" || column === "cost" || column === "profit"
           ? formatCurrency(value as number)
           : String(value);
       });
@@ -765,7 +791,7 @@ export function ProductTable({
       const rowData = columns
         .map((column) => {
           const value = product[column];
-          return column === "price"
+          return column === "price" || column === "cost" || column === "profit"
             ? formatCurrency(value as number)
             : String(value);
         })
@@ -947,7 +973,9 @@ export function ProductTable({
                               "sticky right-0 bg-background"
                           )}
                         >
-                          {column === "price"
+                          {column === "price" ||
+                          column === "cost" ||
+                          column === "profit"
                             ? formatCurrency(product[column])
                             : product[column]}
                         </TableCell>
@@ -998,7 +1026,7 @@ export function ProductTable({
             </TableBody>
             <TableFooter>
               <TableRow>
-                <TableCell colSpan={4} className="font-medium">
+                <TableCell colSpan={5} className="font-medium">
                   Totals
                 </TableCell>
                 <TableCell className="font-medium">
@@ -1017,10 +1045,11 @@ export function ProductTable({
                     )
                   )}
                 </TableCell>
-                <TableCell></TableCell>
+                <TableCell />
+                <TableCell />
               </TableRow>
               <TableRow className="bg-slate-50 dark:bg-slate-900">
-                <TableCell colSpan={8}>
+                <TableCell colSpan={9}>
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-muted-foreground">
                       Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}

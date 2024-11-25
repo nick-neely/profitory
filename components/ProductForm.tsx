@@ -17,15 +17,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PRODUCT_CONDITIONS } from "@/constants";
-import { Product } from "@/hooks/useProducts";
+import { ProductInput } from "@/hooks/useProducts";
 import { productSchema, type ProductFormValues } from "@/lib/schemas/product";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Papa from "papaparse";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Label } from "./ui/label";
 
 const VALID_HEADERS = [
   "Brand",
@@ -34,6 +33,7 @@ const VALID_HEADERS = [
   "Quantity",
   "Condition",
   "Category",
+  "Cost",
 ] as const;
 
 interface CSVRow {
@@ -43,10 +43,11 @@ interface CSVRow {
   Quantity: string;
   Condition: string;
   Category: string;
+  Cost: string;
 }
 
 interface ProductFormProps {
-  onAddProduct: (product: Omit<Product, "id"> | Omit<Product, "id">[]) => void;
+  onAddProduct: (product: ProductInput | ProductInput[]) => void;
 }
 
 export function ProductForm({ onAddProduct }: ProductFormProps) {
@@ -60,6 +61,7 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
       quantity: 1,
       condition: "New",
       category: "",
+      cost: 0,
     },
   });
 
@@ -110,7 +112,7 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
                 );
               }
 
-              const products: Omit<Product, "id">[] = results.data.map(
+              const products: ProductInput[] = results.data.map(
                 (row: CSVRow) => ({
                   brand: row.Brand || "",
                   name: row.Name || "",
@@ -118,6 +120,7 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
                   quantity: parseInt(row.Quantity) || 1,
                   condition: row.Condition || "New",
                   category: row.Category || "",
+                  cost: parseFloat(row.Cost?.replace(/[$,]/g, "") || "0") || 0, // Add cost with fallback
                 })
               );
               onAddProduct(products);
@@ -195,6 +198,20 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
                 <FormLabel>Item Name</FormLabel>
                 <FormControl>
                   <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="cost"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Purchase Cost</FormLabel>
+                <FormControl>
+                  <Input type="number" min="0" step="0.01" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
