@@ -9,6 +9,14 @@
 
 > 📦 Professional inventory tracking and analytics for eBay sellers
 
+<div align="center" style="display:flex; flex-direction:column; gap:16px; margin:32px 0;">
+  <img src="https://github.com/user-attachments/assets/dfce99ba-472e-4859-9cc4-d576930f282e" alt="Profitory Main Interface" width="100%" style="border-radius:8px; box-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1)"/>
+  <div style="display:flex; gap:16px; justify-content:space-between;">
+    <img src="https://github.com/user-attachments/assets/8b9cbf9b-ddee-446b-8cff-c88c28eade23" alt="Profitory Feature 1" width="49%" style="border-radius:8px; box-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1); object-fit:cover"/>
+    <img src="https://github.com/user-attachments/assets/6436ab8b-f16a-4672-8868-d573a9aa2167" alt="Profitory Feature 2" width="49%" style="border-radius:8px; box-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1); object-fit:cover"/>
+  </div>
+</div>
+
 ## ✨ Features
 
 ### 🎯 Core Functionality
