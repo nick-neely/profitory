@@ -277,7 +277,6 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
             disabled={isImporting}
             buttonText="Import CSV"
             buttonVariant="outline"
-            className="w-64"
             buttonContent={
               isImporting ? (
                 <div className="flex items-center">

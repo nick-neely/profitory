@@ -53,13 +53,13 @@ export function Dropzone({
         {isDragActive ? (
           <div
             className={cn(
-              "h-full w-full rounded-md",
+              "h-full rounded-md",
               "flex items-center justify-center",
               "transition-all duration-300 ease-in-out",
               "bg-background/50",
               "border-2 border-dashed border-primary/50",
               "hover:border-primary/70",
-              "shadow-sm",
+              "shadow-sm w-64",
               disabled && "opacity-50 cursor-not-allowed",
               dropzoneClassName
             )}
@@ -76,7 +76,7 @@ export function Dropzone({
             type="button"
             variant={buttonVariant}
             disabled={disabled}
-            className={cn("w-full h-full", buttonClassName)}
+            className={cn("h-full", buttonClassName)}
           >
             {buttonContent ?? (
               <div className="flex items-center gap-2">
