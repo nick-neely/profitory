@@ -70,12 +70,12 @@ interface ColumnConstraints {
 const columnConstraints: ColumnConstraints = {
   brand: { minWidth: 100, maxWidth: 300 },
   name: { minWidth: 150, maxWidth: 400 },
-  price: { minWidth: 50, maxWidth: 100 },
-  quantity: { minWidth: 50, maxWidth: 100 },
+  price: { minWidth: 80, maxWidth: 150 },
+  quantity: { minWidth: 80, maxWidth: 150 },
   condition: { minWidth: 100, maxWidth: 250 },
   category: { minWidth: 100, maxWidth: 250 },
-  cost: { minWidth: 50, maxWidth: 100 },
-  profit: { minWidth: 50, maxWidth: 100 },
+  cost: { minWidth: 80, maxWidth: 150 },
+  profit: { minWidth: 80, maxWidth: 150 },
 };
 
 interface ProductTableProps {
@@ -470,10 +470,10 @@ export function ProductTable({
     () => ({
       brand: 150,
       name: 250,
-      cost: 60,
-      price: 60,
-      profit: 60,
-      quantity: 60,
+      cost: 80,
+      price: 80,
+      profit: 80,
+      quantity: 80,
       condition: 150,
       category: 150,
     }),
@@ -903,194 +903,196 @@ export function ProductTable({
         </div>
 
         {/* Scrollable table container */}
-        <div className="relative rounded-md border overflow-auto h-[calc(100vh-12rem)]">
+        <div className="relative rounded-md border">
           {isLoading && (
             <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-50">
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
           )}
-          <Table className={cn(isResizing ? "select-none" : "", "relative")}>
-            <TableHeader
-              className={cn(
-                stickyHeader && "sticky top-0 z-10 bg-background",
-                "[&_tr]:bg-background",
-                // Make the border more visible
-                stickyHeader &&
-                  "[&_tr:first-child]:border-b-2 [&_tr:first-child]:border-border"
-              )}
-            >
-              <TableRow>
-                {sortedColumns.map((column) => (
-                  <TableHead
-                    key={column}
-                    style={{
-                      width: `var(--column-width-${column})`,
-                      position: "relative",
-                    }}
-                    className={cn(
-                      "transition-none", // Disable transitions during resize
-                      pinnedColumns.left.includes(column) &&
-                        "sticky left-0 bg-background",
-                      pinnedColumns.right.includes(column) &&
-                        "sticky right-0 bg-background"
-                    )}
-                  >
-                    {renderColumnHeader(column)}
-                  </TableHead>
-                ))}
-                <TableHead className="sticky right-0 bg-background">
-                  Action
-                </TableHead>
-              </TableRow>
-              {showFilterInputs && (
+          <div className="overflow-auto max-h-[calc(100vh-12rem)]">
+            <Table className={cn(isResizing ? "select-none" : "", "relative")}>
+              <TableHeader
+                className={cn(
+                  stickyHeader && "sticky top-0 z-10 bg-background",
+                  "[&_tr]:bg-background",
+                  // Make the border more visible
+                  stickyHeader &&
+                    "[&_tr:first-child]:border-b-2 [&_tr:first-child]:border-border"
+                )}
+              >
                 <TableRow>
-                  {columns.map((column) => (
-                    <TableHead key={`filter-${column}`}>
-                      <div data-filter={column}>
-                        {renderFilterInput(column)}
-                      </div>
+                  {sortedColumns.map((column) => (
+                    <TableHead
+                      key={column}
+                      style={{
+                        width: `var(--column-width-${column})`,
+                        position: "relative",
+                      }}
+                      className={cn(
+                        "transition-none", // Disable transitions during resize
+                        pinnedColumns.left.includes(column) &&
+                          "sticky left-0 bg-background",
+                        pinnedColumns.right.includes(column) &&
+                          "sticky right-0 bg-background"
+                      )}
+                    >
+                      {renderColumnHeader(column)}
                     </TableHead>
                   ))}
-                  <TableHead></TableHead>
+                  <TableHead className="sticky right-0 bg-background">
+                    Action
+                  </TableHead>
                 </TableRow>
-              )}
-            </TableHeader>
-            <TableBody>
-              {paginatedProducts.map((product) => (
-                <ContextMenu key={product.id}>
-                  <ContextMenuTrigger asChild>
-                    <TableRow
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={handleRowClick(product)}
-                    >
-                      {sortedColumns.map((column) => (
-                        <TableCell
-                          key={`${product.id}-${column}`}
-                          className={cn(
-                            pinnedColumns.left.includes(column) &&
-                              "sticky left-0 bg-background",
-                            pinnedColumns.right.includes(column) &&
-                              "sticky right-0 bg-background"
-                          )}
-                        >
-                          {column === "price" ||
-                          column === "cost" ||
-                          column === "profit"
-                            ? formatCurrency(product[column])
-                            : product[column]}
-                        </TableCell>
-                      ))}
-                      <TableCell
-                        className="sticky right-0 bg-background"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="flex space-x-2">
-                          <EditProductForm
-                            product={product}
-                            onEditProduct={onEditProduct}
-                          />
-                          <Button
-                            variant="outline"
-                            onClick={() => setDeleteProduct(product)}
-                            className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30"
-                          >
-                            Remove
-                          </Button>
+                {showFilterInputs && (
+                  <TableRow>
+                    {columns.map((column) => (
+                      <TableHead key={`filter-${column}`}>
+                        <div data-filter={column}>
+                          {renderFilterInput(column)}
                         </div>
-                      </TableCell>
-                    </TableRow>
-                  </ContextMenuTrigger>
-                  <ContextMenuContent>
-                    <ContextMenuItem onClick={() => handleRowClick(product)()}>
-                      View Details
-                    </ContextMenuItem>
-                    <ContextMenuSeparator />
-                    <ContextMenuItem onClick={() => exportRowToCSV(product)}>
-                      Export Row to CSV
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                      onClick={() => copyRowToClipboard(product)}
-                    >
-                      Copy Row to Clipboard
-                    </ContextMenuItem>
-                    <ContextMenuSeparator />
-                    <ContextMenuItem
-                      className="text-red-600"
-                      onClick={() => setDeleteProduct(product)}
-                    >
-                      Delete Row
-                    </ContextMenuItem>
-                  </ContextMenuContent>
-                </ContextMenu>
-              ))}
-            </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={5} className="font-medium">
-                  Totals
-                </TableCell>
-                <TableCell className="font-medium">
-                  {sortedProducts.reduce(
-                    (total, product) => total + product.quantity,
-                    0
-                  )}{" "}
-                  items
-                </TableCell>
-                <TableCell className="font-medium">
-                  {formatCurrency(
-                    sortedProducts.reduce(
-                      (total, product) =>
-                        total + product.price * product.quantity,
+                      </TableHead>
+                    ))}
+                    <TableHead></TableHead>
+                  </TableRow>
+                )}
+              </TableHeader>
+              <TableBody>
+                {paginatedProducts.map((product) => (
+                  <ContextMenu key={product.id}>
+                    <ContextMenuTrigger asChild>
+                      <TableRow
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={handleRowClick(product)}
+                      >
+                        {sortedColumns.map((column) => (
+                          <TableCell
+                            key={`${product.id}-${column}`}
+                            className={cn(
+                              pinnedColumns.left.includes(column) &&
+                                "sticky left-0 bg-background",
+                              pinnedColumns.right.includes(column) &&
+                                "sticky right-0 bg-background"
+                            )}
+                          >
+                            {column === "price" ||
+                            column === "cost" ||
+                            column === "profit"
+                              ? formatCurrency(product[column])
+                              : product[column]}
+                          </TableCell>
+                        ))}
+                        <TableCell
+                          className="sticky right-0 bg-background"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex space-x-2">
+                            <EditProductForm
+                              product={product}
+                              onEditProduct={onEditProduct}
+                            />
+                            <Button
+                              variant="outline"
+                              onClick={() => setDeleteProduct(product)}
+                              className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                      <ContextMenuItem onClick={() => handleRowClick(product)()}>
+                        View Details
+                      </ContextMenuItem>
+                      <ContextMenuSeparator />
+                      <ContextMenuItem onClick={() => exportRowToCSV(product)}>
+                        Export Row to CSV
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        onClick={() => copyRowToClipboard(product)}
+                      >
+                        Copy Row to Clipboard
+                      </ContextMenuItem>
+                      <ContextMenuSeparator />
+                      <ContextMenuItem
+                        className="text-red-600"
+                        onClick={() => setDeleteProduct(product)}
+                      >
+                        Delete Row
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
+                ))}
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={5} className="font-medium">
+                    Totals
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {sortedProducts.reduce(
+                      (total, product) => total + product.quantity,
                       0
-                    )
-                  )}
-                </TableCell>
-                <TableCell />
-                <TableCell />
-              </TableRow>
-              <TableRow className="bg-slate-50 dark:bg-slate-900">
-                <TableCell colSpan={9}>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                      {Math.min(
-                        currentPage * itemsPerPage,
-                        sortedProducts.length
-                      )}{" "}
-                      of {sortedProducts.length} items
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setCurrentPage((prev) => Math.max(1, prev - 1))
-                        }
-                        disabled={currentPage === 1}
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      <div className="text-sm">
-                        Page {currentPage} of {totalPages}
+                    )}{" "}
+                    items
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {formatCurrency(
+                      sortedProducts.reduce(
+                        (total, product) =>
+                          total + product.price * product.quantity,
+                        0
+                      )
+                    )}
+                  </TableCell>
+                  <TableCell />
+                  <TableCell />
+                </TableRow>
+                <TableRow className="bg-slate-50 dark:bg-slate-900">
+                  <TableCell colSpan={9}>
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-muted-foreground">
+                        Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                        {Math.min(
+                          currentPage * itemsPerPage,
+                          sortedProducts.length
+                        )}{" "}
+                        of {sortedProducts.length} items
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setCurrentPage((prev) =>
-                            Math.min(totalPages, prev + 1)
-                          )
-                        }
-                        disabled={currentPage === totalPages}
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setCurrentPage((prev) => Math.max(1, prev - 1))
+                          }
+                          disabled={currentPage === 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <div className="text-sm">
+                          Page {currentPage} of {totalPages}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setCurrentPage((prev) =>
+                              Math.min(totalPages, prev + 1)
+                            )
+                          }
+                          disabled={currentPage === totalPages}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
-              </TableRow>
-            </TableFooter>
-          </Table>
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
+          </div>
         </div>
 
         {/* Modals - keep these outside the scrollable area */}
