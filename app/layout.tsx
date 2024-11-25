@@ -38,7 +38,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Header />
-          <main className="min-h-[calc(100vh-3.5rem)] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <main className="min-h-[calc(100vh-3.5rem)] max-w-[90rem] mx-auto px-3 sm:px-4 lg:px-6">
             {children}
           </main>
           <Toaster />
