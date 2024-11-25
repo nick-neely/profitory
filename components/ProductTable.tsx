@@ -185,6 +185,7 @@ export function ProductTable({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
+  const [stickyHeader, setStickyHeader] = useState(true);
 
   const defaultColumns = useMemo<(keyof Product)[]>(
     () => ["brand", "name", "price", "quantity", "condition", "category"],
@@ -621,6 +622,12 @@ export function ProductTable({
                   Column Customization
                 </ContextMenuSubTrigger>
                 <ContextMenuSubContent>
+                  <ContextMenuCheckboxItem
+                    checked={stickyHeader}
+                    onCheckedChange={setStickyHeader}
+                  >
+                    Sticky Header
+                  </ContextMenuCheckboxItem>
                   <ContextMenuItem onClick={resetColumnWidths}>
                     Reset Column Widths
                   </ContextMenuItem>
@@ -711,6 +718,7 @@ export function ProductTable({
       resetColumnWidths,
       sortConfig.direction,
       sortConfig.key,
+      stickyHeader,
     ]
   );
 
@@ -774,13 +782,10 @@ export function ProductTable({
 
   return (
     <div className="space-y-6 py-4">
+      {/* Create a wrapper div with relative positioning and overflow */}
       <div className="relative" ref={containerRef}>
-        {isLoading && (
-          <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-50">
-            <Loader2 className="h-8 w-8 animate-spin" />
-          </div>
-        )}
-        <div className="flex justify-between items-center mb-4">
+        {/* Controls bar - keep this outside the scrollable area */}
+        <div className="flex justify-between items-center mb-4 bg-background">
           <div className="flex space-x-2">
             <TooltipProvider>
               <Tooltip>
@@ -870,170 +875,192 @@ export function ProductTable({
             </Select>
           </div>
         </div>
-        <Table className={isResizing ? "select-none" : ""}>
-          <TableHeader>
-            <TableRow>
-              {sortedColumns.map((column) => (
-                <TableHead
-                  key={column}
-                  style={{
-                    width: `var(--column-width-${column})`,
-                    position: "relative",
-                  }}
-                  className={cn(
-                    "transition-none", // Disable transitions during resize
-                    pinnedColumns.left.includes(column) &&
-                      "sticky left-0 bg-background",
-                    pinnedColumns.right.includes(column) &&
-                      "sticky right-0 bg-background"
-                  )}
-                >
-                  {renderColumnHeader(column)}
-                </TableHead>
-              ))}
-              <TableHead className="sticky right-0 bg-background">
-                Action
-              </TableHead>
-            </TableRow>
-            {showFilterInputs && (
+
+        {/* Scrollable table container */}
+        <div className="relative rounded-md border overflow-auto h-[calc(100vh-12rem)]">
+          {isLoading && (
+            <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-50">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          )}
+          <Table className={cn(isResizing ? "select-none" : "", "relative")}>
+            <TableHeader
+              className={cn(
+                stickyHeader && "sticky top-0 z-10 bg-background",
+                "[&_tr]:bg-background"
+              )}
+            >
               <TableRow>
-                {columns.map((column) => (
-                  <TableHead key={`filter-${column}`}>
-                    <div data-filter={column}>{renderFilterInput(column)}</div>
+                {sortedColumns.map((column) => (
+                  <TableHead
+                    key={column}
+                    style={{
+                      width: `var(--column-width-${column})`,
+                      position: "relative",
+                    }}
+                    className={cn(
+                      "transition-none", // Disable transitions during resize
+                      pinnedColumns.left.includes(column) &&
+                        "sticky left-0 bg-background",
+                      pinnedColumns.right.includes(column) &&
+                        "sticky right-0 bg-background"
+                    )}
+                  >
+                    {renderColumnHeader(column)}
                   </TableHead>
                 ))}
-                <TableHead></TableHead>
+                <TableHead className="sticky right-0 bg-background">
+                  Action
+                </TableHead>
               </TableRow>
-            )}
-          </TableHeader>
-          <TableBody>
-            {paginatedProducts.map((product) => (
-              <ContextMenu key={product.id}>
-                <ContextMenuTrigger asChild>
-                  <TableRow
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={handleRowClick(product)}
-                  >
-                    {sortedColumns.map((column) => (
-                      <TableCell
-                        key={`${product.id}-${column}`}
-                        className={cn(
-                          pinnedColumns.left.includes(column) &&
-                            "sticky left-0 bg-background",
-                          pinnedColumns.right.includes(column) &&
-                            "sticky right-0 bg-background"
-                        )}
-                      >
-                        {column === "price"
-                          ? formatCurrency(product[column])
-                          : product[column]}
-                      </TableCell>
-                    ))}
-                    <TableCell
-                      className="sticky right-0 bg-background"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="flex space-x-2">
-                        <EditProductForm
-                          product={product}
-                          onEditProduct={onEditProduct}
-                        />
-                        <Button
-                          variant="destructive"
-                          onClick={() => setDeleteProduct(product)}
-                        >
-                          Remove
-                        </Button>
+              {showFilterInputs && (
+                <TableRow>
+                  {columns.map((column) => (
+                    <TableHead key={`filter-${column}`}>
+                      <div data-filter={column}>
+                        {renderFilterInput(column)}
                       </div>
-                    </TableCell>
-                  </TableRow>
-                </ContextMenuTrigger>
-                <ContextMenuContent>
-                  <ContextMenuItem onClick={() => handleRowClick(product)()}>
-                    View Details
-                  </ContextMenuItem>
-                  <ContextMenuSeparator />
-                  <ContextMenuItem onClick={() => exportRowToCSV(product)}>
-                    Export Row to CSV
-                  </ContextMenuItem>
-                  <ContextMenuItem onClick={() => copyRowToClipboard(product)}>
-                    Copy Row to Clipboard
-                  </ContextMenuItem>
-                  <ContextMenuSeparator />
-                  <ContextMenuItem
-                    className="text-red-600"
-                    onClick={() => setDeleteProduct(product)}
-                  >
-                    Delete Row
-                  </ContextMenuItem>
-                </ContextMenuContent>
-              </ContextMenu>
-            ))}
-          </TableBody>
-          <TableFooter>
-            <TableRow>
-              <TableCell colSpan={4} className="font-medium">
-                Totals
-              </TableCell>
-              <TableCell className="font-medium">
-                {sortedProducts.reduce(
-                  (total, product) => total + product.quantity,
-                  0
-                )}{" "}
-                items
-              </TableCell>
-              <TableCell className="font-medium">
-                {formatCurrency(
-                  sortedProducts.reduce(
-                    (total, product) =>
-                      total + product.price * product.quantity,
+                    </TableHead>
+                  ))}
+                  <TableHead></TableHead>
+                </TableRow>
+              )}
+            </TableHeader>
+            <TableBody>
+              {paginatedProducts.map((product) => (
+                <ContextMenu key={product.id}>
+                  <ContextMenuTrigger asChild>
+                    <TableRow
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={handleRowClick(product)}
+                    >
+                      {sortedColumns.map((column) => (
+                        <TableCell
+                          key={`${product.id}-${column}`}
+                          className={cn(
+                            pinnedColumns.left.includes(column) &&
+                              "sticky left-0 bg-background",
+                            pinnedColumns.right.includes(column) &&
+                              "sticky right-0 bg-background"
+                          )}
+                        >
+                          {column === "price"
+                            ? formatCurrency(product[column])
+                            : product[column]}
+                        </TableCell>
+                      ))}
+                      <TableCell
+                        className="sticky right-0 bg-background"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex space-x-2">
+                          <EditProductForm
+                            product={product}
+                            onEditProduct={onEditProduct}
+                          />
+                          <Button
+                            variant="destructive"
+                            onClick={() => setDeleteProduct(product)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  </ContextMenuTrigger>
+                  <ContextMenuContent>
+                    <ContextMenuItem onClick={() => handleRowClick(product)()}>
+                      View Details
+                    </ContextMenuItem>
+                    <ContextMenuSeparator />
+                    <ContextMenuItem onClick={() => exportRowToCSV(product)}>
+                      Export Row to CSV
+                    </ContextMenuItem>
+                    <ContextMenuItem
+                      onClick={() => copyRowToClipboard(product)}
+                    >
+                      Copy Row to Clipboard
+                    </ContextMenuItem>
+                    <ContextMenuSeparator />
+                    <ContextMenuItem
+                      className="text-red-600"
+                      onClick={() => setDeleteProduct(product)}
+                    >
+                      Delete Row
+                    </ContextMenuItem>
+                  </ContextMenuContent>
+                </ContextMenu>
+              ))}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={4} className="font-medium">
+                  Totals
+                </TableCell>
+                <TableCell className="font-medium">
+                  {sortedProducts.reduce(
+                    (total, product) => total + product.quantity,
                     0
-                  )
-                )}
-              </TableCell>
-              <TableCell></TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell colSpan={8}>
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-muted-foreground">
-                    Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                    {Math.min(
-                      currentPage * itemsPerPage,
-                      sortedProducts.length
-                    )}{" "}
-                    of {sortedProducts.length} items
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(1, prev - 1))
-                      }
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <div className="text-sm">
-                      Page {currentPage} of {totalPages}
+                  )}{" "}
+                  items
+                </TableCell>
+                <TableCell className="font-medium">
+                  {formatCurrency(
+                    sortedProducts.reduce(
+                      (total, product) =>
+                        total + product.price * product.quantity,
+                      0
+                    )
+                  )}
+                </TableCell>
+                <TableCell></TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell colSpan={8}>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                      {Math.min(
+                        currentPage * itemsPerPage,
+                        sortedProducts.length
+                      )}{" "}
+                      of {sortedProducts.length} items
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                      }
-                      disabled={currentPage === totalPages}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(1, prev - 1))
+                        }
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <div className="text-sm">
+                        Page {currentPage} of {totalPages}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(totalPages, prev + 1)
+                          )
+                        }
+                        disabled={currentPage === totalPages}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </TableCell>
-            </TableRow>
-          </TableFooter>
-        </Table>
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
+        </div>
+
+        {/* Modals - keep these outside the scrollable area */}
         <DeleteAllConfirmationModal
           isOpen={isDeleteAllModalOpen}
           onOpenChange={setIsDeleteAllModalOpen}
