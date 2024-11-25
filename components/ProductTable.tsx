@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/tooltip";
 import { PRODUCT_CONDITIONS } from "@/constants";
 import { Product, ProductInput } from "@/hooks/useProducts";
+import { useProductTable } from "@/hooks/useProductTable";
 import { cn, formatCurrency } from "@/lib/utils";
 import {
   ArrowUpDown,
@@ -86,14 +87,8 @@ interface ProductTableProps {
   onRemoveAllProducts: () => void;
 }
 
-type SortConfig = {
-  key: keyof Product;
-  direction: "asc" | "desc";
-};
-
 type PriceOperator = ">" | ">=" | "<" | "<=" | "=";
 type PriceFilter = { operator: PriceOperator; value: number } | null;
-type FilterValue = string | PriceFilter | TNumberFilter;
 
 const useColumnResize = (initialWidths: Record<string, number>) => {
   const [isResizing, setIsResizing] = useState(false);
@@ -175,14 +170,22 @@ export function ProductTable({
   onEditProduct,
   onRemoveAllProducts,
 }: ProductTableProps) {
-  const [filters, setFilters] = useState<Record<string, FilterValue>>({});
-  const [sortConfig, setSortConfig] = useState<SortConfig>({
-    key: "brand",
-    direction: "asc",
-  });
+  const {
+    filters,
+    setFilters,
+    sortConfig,
+    currentPage,
+    setCurrentPage,
+    itemsPerPage,
+    setItemsPerPage,
+    totalPages,
+    paginatedProducts,
+    sortedProducts,
+    handleFilterChange,
+    handleSort,
+  } = useProductTable(products);
+
   const [showFilterInputs, setShowFilterInputs] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -218,69 +221,6 @@ export function ProductTable({
   }, [defaultColumns]);
 
   const hiddenColumnsCount = defaultColumns.length - columns.length;
-
-  const handleFilterChange = (key: keyof Product, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleSort = (key: keyof Product) => {
-    setSortConfig((prev) => ({
-      key,
-      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
-    }));
-  };
-
-  const productsWithProfit = useMemo(
-    () =>
-      products.map((product) => ({
-        ...product,
-        profit: product.price - product.cost,
-      })),
-    [products]
-  );
-
-  const filteredProducts = productsWithProfit.filter((product) =>
-    Object.entries(filters).every(([key, filter]) => {
-      if (!filter) return true;
-
-      if (key === "price" || key === "quantity") {
-        const numericFilter = filter as { operator: string; value: number };
-        const value = product[key as keyof Product] as number;
-        switch (numericFilter.operator) {
-          case ">":
-            return value > numericFilter.value;
-          case ">=":
-            return value >= numericFilter.value;
-          case "<":
-            return value < numericFilter.value;
-          case "<=":
-            return value <= numericFilter.value;
-          case "=":
-            return value === numericFilter.value;
-          default:
-            return true;
-        }
-      }
-
-      return String(product[key as keyof Product])
-        .toLowerCase()
-        .includes(String(filter).toLowerCase());
-    })
-  );
-
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (a[sortConfig.key] < b[sortConfig.key])
-      return sortConfig.direction === "asc" ? -1 : 1;
-    if (a[sortConfig.key] > b[sortConfig.key])
-      return sortConfig.direction === "asc" ? 1 : -1;
-    return 0;
-  });
-
-  const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
-  const paginatedProducts = sortedProducts.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
 
   const exportToCSV = () => {
     const headers = [
@@ -1002,7 +942,9 @@ export function ProductTable({
                       </TableRow>
                     </ContextMenuTrigger>
                     <ContextMenuContent>
-                      <ContextMenuItem onClick={() => handleRowClick(product)()}>
+                      <ContextMenuItem
+                        onClick={() => handleRowClick(product)()}
+                      >
                         View Details
                       </ContextMenuItem>
                       <ContextMenuSeparator />
