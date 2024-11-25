@@ -19,17 +19,37 @@ import { PRODUCT_CONDITIONS } from "@/constants";
 import { Product } from "@/hooks/useProducts";
 import { productSchema, type ProductFormValues } from "@/lib/schemas/product";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Upload } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 import Papa from "papaparse";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Label } from "./ui/label";
+
+const VALID_HEADERS = [
+  "Brand",
+  "Name",
+  "Price",
+  "Quantity",
+  "Condition",
+  "Category",
+] as const;
+
+interface CSVRow {
+  Brand: string;
+  Name: string;
+  Price: string;
+  Quantity: string;
+  Condition: string;
+  Category: string;
+}
 
 interface ProductFormProps {
   onAddProduct: (product: Omit<Product, "id"> | Omit<Product, "id">[]) => void;
 }
 
 export function ProductForm({ onAddProduct }: ProductFormProps) {
+  const [isImporting, setIsImporting] = useState(false);
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -42,46 +62,93 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
     },
   });
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      interface CSVRow {
-        Brand: string;
-        Name: string;
-        Price: string;
-        Quantity: string;
-        Condition: string;
-        Category: string;
-      }
+  const validateHeaders = (headers: string[]): string[] | null => {
+    const normalizedHeaders = headers.map(
+      (header) => header.replace(/['"]/g, "").trim() // Remove quotes and trim whitespace
+    );
 
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results: Papa.ParseResult<CSVRow>) => {
-          try {
-            const products: Omit<Product, "id">[] = results.data.map(
-              (row: CSVRow) => ({
-                brand: row.Brand || "",
-                name: row.Name || "",
-                price: parseFloat(row.Price.replace(/[$,]/g, "")) || 0,
-                quantity: parseInt(row.Quantity) || 1,
-                condition: row.Condition || "New",
-                category: row.Category || "",
-              })
-            );
-            onAddProduct(products);
-            toast.success("CSV Import Successful", {
-              description: `Added ${products.length} products to inventory`,
+    const missingHeaders = VALID_HEADERS.filter(
+      (validHeader) =>
+        !normalizedHeaders.some(
+          (header) => header.toLowerCase() === validHeader.toLowerCase()
+        )
+    );
+
+    return missingHeaders.length ? missingHeaders : null;
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+
+    try {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        Papa.parse<CSVRow>(reader.result?.toString() || "", {
+          header: true,
+          skipEmptyLines: true,
+          beforeFirstChunk: (chunk) => {
+            const firstLine = chunk.split("\n")[0];
+            const normalizedHeaders = firstLine
+              .split(",")
+              .map((header) => header.replace(/['"]/g, "").trim());
+            return [
+              normalizedHeaders.join(","),
+              ...chunk.split("\n").slice(1),
+            ].join("\n");
+          },
+          complete: (results: Papa.ParseResult<CSVRow>) => {
+            try {
+              const missingHeaders = validateHeaders(results.meta.fields || []);
+              if (missingHeaders) {
+                throw new Error(
+                  `Missing required columns: ${missingHeaders.join(", ")}`
+                );
+              }
+
+              const products: Omit<Product, "id">[] = results.data.map(
+                (row: CSVRow) => ({
+                  brand: row.Brand || "",
+                  name: row.Name || "",
+                  price: parseFloat(row.Price.replace(/[$,]/g, "")) || 0,
+                  quantity: parseInt(row.Quantity) || 1,
+                  condition: row.Condition || "New",
+                  category: row.Category || "",
+                })
+              );
+              onAddProduct(products);
+              toast.success("CSV Import Successful", {
+                description: `Added ${products.length} products to inventory`,
+              });
+            } catch (error) {
+              toast.error("Failed to import CSV", {
+                description:
+                  error instanceof Error
+                    ? error.message
+                    : "Unknown error occurred",
+              });
+            } finally {
+              setIsImporting(false);
+            }
+          },
+          error: (error: Error) => {
+            toast.error("Failed to parse CSV", {
+              description: error.message,
             });
-          } catch (error) {
-            toast.error("Failed to import CSV", {
-              description:
-                error instanceof Error
-                  ? error.message
-                  : "Unknown error occurred",
-            });
-          }
-        },
+            setIsImporting(false);
+          },
+        });
+      };
+
+      reader.readAsText(file);
+    } catch (error) {
+      setIsImporting(false);
+      toast.error("Failed to read file", {
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
       });
     }
   };
@@ -95,7 +162,8 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
       form.reset();
     } catch (error) {
       toast.error("Failed to add product", {
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
       });
     }
   };
@@ -202,15 +270,25 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
 
         <div className="flex space-x-2">
           <Button type="submit">Add Product</Button>
-          <Label htmlFor="csvFile" className="flex items-center cursor-pointer">
-            <Upload className="mr-2 h-4 w-4" />
-            Import CSV
+          <Label
+            htmlFor="csvFile"
+            className={`flex items-center cursor-pointer ${
+              isImporting ? "opacity-50 pointer-events-none" : ""
+            }`}
+          >
+            {isImporting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="mr-2 h-4 w-4" />
+            )}
+            {isImporting ? "Importing..." : "Import CSV"}
           </Label>
           <Input
             id="csvFile"
             type="file"
             accept=".csv"
             onChange={handleFileUpload}
+            disabled={isImporting}
             className="hidden"
           />
         </div>
