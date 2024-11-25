@@ -1,3 +1,4 @@
+import { Dropzone } from "@/components/Dropzone";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -77,8 +78,8 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
     return missingHeaders.length ? missingHeaders : null;
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileUpload = async (files: File[]) => {
+    const file = files[0];
     if (!file) return;
 
     setIsImporting(true);
@@ -270,26 +271,21 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
 
         <div className="flex space-x-2">
           <Button type="submit">Add Product</Button>
-          <Label
-            htmlFor="csvFile"
-            className={`flex items-center cursor-pointer ${
-              isImporting ? "opacity-50 pointer-events-none" : ""
-            }`}
-          >
-            {isImporting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Upload className="mr-2 h-4 w-4" />
-            )}
-            {isImporting ? "Importing..." : "Import CSV"}
-          </Label>
-          <Input
-            id="csvFile"
-            type="file"
-            accept=".csv"
-            onChange={handleFileUpload}
+          <Dropzone
+            onDrop={handleFileUpload}
+            accept={{ "text/csv": [".csv"] }}
             disabled={isImporting}
-            className="hidden"
+            buttonText="Import CSV"
+            buttonVariant="outline"
+            className="w-64"
+            buttonContent={
+              isImporting ? (
+                <div className="flex items-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <span>Importing...</span>
+                </div>
+              ) : undefined
+            }
           />
         </div>
       </form>
