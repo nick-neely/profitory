@@ -40,6 +40,7 @@ import { PRODUCT_CONDITIONS } from "@/constants";
 import { Product, ProductInput } from "@/hooks/useProducts";
 import { useProductTable } from "@/hooks/useProductTable";
 import { cn, formatCurrency } from "@/lib/utils";
+import { copyToClipboard, exportToCSV } from "@/utils/export";
 import {
   ArrowUpDown,
   Download,
@@ -50,6 +51,7 @@ import {
   Trash,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { DeleteAllConfirmationModal } from "./DeleteAllConfirmationModal";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import {
@@ -228,87 +230,34 @@ export function ProductTable({
 
   const hiddenColumnsCount = defaultColumns.length - columns.length;
 
-  const exportToCSV = () => {
-    const headers = [
-      "Brand",
-      "Name",
-      "Cost",
-      "Price",
-      "Profit",
-      "Quantity",
-      "Condition",
-      "Category",
-    ];
-    const rows = sortedProducts.map((product) => [
-      product.brand,
-      product.name,
-      formatCurrency(product.cost),
-      formatCurrency(product.price),
-      formatCurrency(product.profit),
-      product.quantity,
-      product.condition,
-      product.category,
-    ]);
-
-    const csvContent = [headers, ...rows]
-      .map((row) => row.map((item) => `"${item}"`).join(","))
-      .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", "products.csv");
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleExportToCSV = () => {
+    exportToCSV(sortedProducts, {
+      filename: "products.csv",
+      fields: columns,
+    });
   };
 
-  const exportColumn = useCallback(
-    (column: keyof Product, format: "csv") => {
-      const columnData = sortedProducts.map((product) => {
-        const value = product[column];
-        return column === "price" || column === "cost" || column === "profit"
-          ? formatCurrency(value as number)
-          : String(value);
+  const handleExportColumn = useCallback(
+    (column: keyof Product) => {
+      exportToCSV(sortedProducts, {
+        filename: `${column}.csv`,
+        fields: [column],
       });
-
-      if (format === "csv") {
-        const csvContent = [column, ...columnData]
-          .map((value) => `"${value}"`)
-          .join(",");
-        const blob = new Blob([csvContent], {
-          type: "text/csv;charset=utf-8;",
-        });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", `${column}.csv`);
-        link.style.visibility = "hidden";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
     },
     [sortedProducts]
   );
 
-  const copyColumnToClipboard = useCallback(
+  const handleCopyColumnToClipboard = useCallback(
     async (column: keyof Product) => {
-      const columnData = sortedProducts
-        .map((product) => {
-          const value = product[column];
-          return column === "price" || column === "cost" || column === "profit"
-            ? formatCurrency(value as number)
-            : String(value);
-        })
-        .join(", ");
-
       try {
-        await navigator.clipboard.writeText(columnData);
+        await copyToClipboard(sortedProducts, {
+          fields: [column],
+        });
       } catch (err) {
-        console.error("Failed to copy to clipboard:", err);
+        toast.error("Failed to copy column to clipboard", {
+          description:
+            err instanceof Error ? err.message : "Unknown error occurred",
+        });
       }
     },
     [sortedProducts]
@@ -576,11 +525,11 @@ export function ProductTable({
               <ContextMenuSub>
                 <ContextMenuSubTrigger>Export</ContextMenuSubTrigger>
                 <ContextMenuSubContent>
-                  <ContextMenuItem onClick={() => exportColumn(column, "csv")}>
+                  <ContextMenuItem onClick={() => handleExportColumn(column)}>
                     Export Column to CSV
                   </ContextMenuItem>
                   <ContextMenuItem
-                    onClick={() => copyColumnToClipboard(column)}
+                    onClick={() => handleCopyColumnToClipboard(column)}
                   >
                     Copy Column to Clipboard
                   </ContextMenuItem>
@@ -687,8 +636,8 @@ export function ProductTable({
       defaultColumns,
       handleSort,
       setFilters,
-      exportColumn,
-      copyColumnToClipboard,
+      handleExportColumn,
+      handleCopyColumnToClipboard,
       handleMouseDown,
       widths,
     ]
@@ -782,7 +731,7 @@ export function ProductTable({
                 <TooltipTrigger asChild>
                   <Button
                     variant="outline"
-                    onClick={exportToCSV}
+                    onClick={handleExportToCSV}
                     disabled={sortedProducts.length === 0}
                   >
                     <Download

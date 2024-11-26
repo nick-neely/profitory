@@ -1,18 +1,18 @@
-import { formatCurrency } from "@/lib/utils";
-import { Product } from "@/hooks/useProducts";
 import { Button } from "@/components/ui/button";
-import { TableCell, TableRow } from "@/components/ui/table";
-import { EditProductForm } from "./EditProductForm";
 import {
   ContextMenu,
-  ContextMenuTrigger,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { Product } from "@/hooks/useProducts";
+import { cn, formatCurrency } from "@/lib/utils";
 import { ColumnConfig, RowActions } from "@/types/product-table";
+import { copyToClipboard, exportToCSV } from "@/utils/export";
+import { toast } from "sonner";
+import { EditProductForm } from "./EditProductForm";
 
 interface ProductRowProps {
   product: Product;
@@ -20,45 +20,28 @@ interface ProductRowProps {
   actions: RowActions;
 }
 
-export function ProductRow({ product, columnConfig, actions }: ProductRowProps) {
-  const exportRowToCSV = async (product: Product) => {
-    const headers = columnConfig.visibleColumns;
-    const row = columnConfig.visibleColumns.map((column) => {
-      const value = product[column];
-      return column === "price" || column === "cost" || column === "profit"
-        ? formatCurrency(value as number)
-        : String(value);
+export function ProductRow({
+  product,
+  columnConfig,
+  actions,
+}: ProductRowProps) {
+  const handleExportRow = () => {
+    exportToCSV(product, {
+      filename: `product-${product.id}.csv`,
+      fields: columnConfig.visibleColumns,
     });
-
-    const csvContent = [headers, row]
-      .map((row) => row.map((item) => `"${item}"`).join(","))
-      .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `product-${product.id}.csv`);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
-  const copyRowToClipboard = async (product: Product) => {
-    const rowData = columnConfig.visibleColumns
-      .map((column) => {
-        const value = product[column];
-        return column === "price" || column === "cost" || column === "profit"
-          ? formatCurrency(value as number)
-          : String(value);
-      })
-      .join(", ");
-
+  const handleCopyRow = async () => {
     try {
-      await navigator.clipboard.writeText(rowData);
+      await copyToClipboard(product, {
+        fields: columnConfig.visibleColumns,
+      });
     } catch (err) {
-      console.error("Failed to copy to clipboard:", err);
+      toast.error("Failed to copy row to clipboard", {
+        description:
+          err instanceof Error ? err.message : "Unknown error occurred",
+      });
     }
   };
 
@@ -79,9 +62,7 @@ export function ProductRow({ product, columnConfig, actions }: ProductRowProps) 
                   "sticky right-0 bg-background"
               )}
             >
-              {column === "price" ||
-              column === "cost" ||
-              column === "profit"
+              {column === "price" || column === "cost" || column === "profit"
                 ? formatCurrency(product[column])
                 : product[column]}
             </TableCell>
@@ -111,10 +92,10 @@ export function ProductRow({ product, columnConfig, actions }: ProductRowProps) 
           View Details
         </ContextMenuItem>
         <ContextMenuSeparator />
-        <ContextMenuItem onClick={() => exportRowToCSV(product)}>
+        <ContextMenuItem onClick={handleExportRow}>
           Export Row to CSV
         </ContextMenuItem>
-        <ContextMenuItem onClick={() => copyRowToClipboard(product)}>
+        <ContextMenuItem onClick={handleCopyRow}>
           Copy Row to Clipboard
         </ContextMenuItem>
         <ContextMenuSeparator />
