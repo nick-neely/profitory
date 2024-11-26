@@ -76,6 +76,7 @@ export function ProductRow({
               <EditProductFormModal
                 product={product}
                 onEditProduct={actions.onEditProduct}
+                trigger={<Button variant="outline">Edit</Button>}
               />
               <Button
                 variant="outline"

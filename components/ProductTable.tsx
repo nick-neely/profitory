@@ -19,6 +19,7 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import { useColumnResize } from "@/hooks/useColumnResize";
 import { Product, ProductInput } from "@/hooks/useProducts";
 import { NumberFilter, useProductTable } from "@/hooks/useProductTable";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import { cn } from "@/lib/utils";
 import { copyToClipboard } from "@/utils/copy";
 import { exportToCSV } from "@/utils/export";
@@ -64,6 +65,7 @@ export function ProductTable({
   onEditProduct,
   onRemoveAllProducts,
 }: ProductTableProps) {
+  const { isMobile } = useResponsiveLayout();
   const {
     filters,
     setFilters,
@@ -518,31 +520,13 @@ export function ProductTable({
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
           )}
-          <div className="overflow-auto max-h-[calc(100vh-12rem)]">
-            <Table className={cn(isResizing ? "select-none" : "", "relative")}>
-              <ProductTableHeader
-                sortedColumns={sortedColumns}
-                renderColumnHeader={renderColumnHeader}
-                showFilterInputs={showFilterInputs}
-                columns={columns}
-                renderFilterInput={renderFilterInput}
-                pinnedColumns={pinnedColumns}
-                stickyHeader={stickyHeader}
-                handleMouseDown={handleMouseDown}
-                widths={widths}
-                filters={filters}
-                handleSort={handleSort}
-                setFilters={setFilters}
-                resetColumnWidths={resetColumnWidths}
-                resetColumns={resetColumns}
-                toggleColumn={toggleColumn}
-                hiddenColumnsCount={hiddenColumnsCount}
-                defaultColumns={defaultColumns}
-                stickyFooter={stickyFooter}
-                setStickyFooter={setStickyFooter}
-                setShowFilterInputs={setShowFilterInputs}
-              />
-
+          <div
+            className={cn(
+              "overflow-auto",
+              isMobile ? "p-4" : "max-h-[calc(100vh-12rem)]"
+            )}
+          >
+            {isMobile ? (
               <ProductTableBody
                 paginatedProducts={paginatedProducts}
                 columnConfig={{
@@ -556,17 +540,60 @@ export function ProductTable({
                     setDeleteProduct(products.find((p) => p.id === id) || null),
                   onRowClick: handleRowClick,
                 }}
+                isMobile={true}
               />
+            ) : (
+              <Table
+                className={cn(isResizing ? "select-none" : "", "relative")}
+              >
+                <ProductTableHeader
+                  sortedColumns={sortedColumns}
+                  renderColumnHeader={renderColumnHeader}
+                  showFilterInputs={showFilterInputs}
+                  columns={columns}
+                  renderFilterInput={renderFilterInput}
+                  pinnedColumns={pinnedColumns}
+                  stickyHeader={stickyHeader}
+                  handleMouseDown={handleMouseDown}
+                  widths={widths}
+                  filters={filters}
+                  handleSort={handleSort}
+                  setFilters={setFilters}
+                  resetColumnWidths={resetColumnWidths}
+                  resetColumns={resetColumns}
+                  toggleColumn={toggleColumn}
+                  hiddenColumnsCount={hiddenColumnsCount}
+                  defaultColumns={defaultColumns}
+                  stickyFooter={stickyFooter}
+                  setStickyFooter={setStickyFooter}
+                  setShowFilterInputs={setShowFilterInputs}
+                />
 
-              <ProductTableFooter
-                paginatedProducts={paginatedProducts}
-                sortedColumns={sortedColumns}
-                visibleTotals={visibleTotals}
-                setVisibleTotals={setVisibleTotals}
-                stickyFooter={stickyFooter}
-                setStickyFooter={setStickyFooter}
-              />
-            </Table>
+                <ProductTableBody
+                    paginatedProducts={paginatedProducts}
+                    columnConfig={{
+                      pinnedColumns,
+                      visibleColumns: columns,
+                      sortedColumns,
+                    }}
+                    actions={{
+                      onEditProduct,
+                      onRemoveProduct: (id) => setDeleteProduct(
+                        products.find((p) => p.id === id) || null
+                      ),
+                      onRowClick: handleRowClick,
+                    }} isMobile={false}                />
+
+                <ProductTableFooter
+                  paginatedProducts={paginatedProducts}
+                  sortedColumns={sortedColumns}
+                  visibleTotals={visibleTotals}
+                  setVisibleTotals={setVisibleTotals}
+                  stickyFooter={stickyFooter}
+                  setStickyFooter={setStickyFooter}
+                />
+              </Table>
+            )}
           </div>
         </div>
 
