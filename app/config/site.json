@@ -1,0 +1,29 @@
+{
+  "name": {
+    "full": "Profitory - eBay Inventory Management & Analytics",
+    "short": "Profitory",
+    "legal": "Profitory"
+  },
+  "seo": {
+    "title": "Profitory - Professional eBay Inventory Management",
+    "description": "Professional inventory tracking and analytics platform for eBay sellers. Manage products, track inventory, and gain valuable insights for your business.",
+    "category": "eCommerce Tools",
+    "keywords": [
+      "eBay",
+      "Inventory Management",
+      "Analytics",
+      "Product Tracking",
+      "eCommerce",
+      "Business Tools",
+      "Seller Platform",
+      "Inventory Analytics"
+    ],
+    "url": "https://profitory.io/",
+    "author": {
+      "name": "Nick Neely",
+      "url": "https://nickneely.dev/"
+    },
+    "creator": "Nick Neely",
+    "publisher": "Nick Neely"
+  }
+}

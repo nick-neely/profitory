@@ -3,6 +3,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { config } from "./config";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -16,9 +17,39 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
+export const title = config.name.full;
+export const url = config.seo.url;
+const description = config.seo.description;
+
 export const metadata: Metadata = {
-  title: "Profitory",
-  description: "eBay inventory tracking and analytics",
+  metadataBase: new URL(url),
+  title: {
+    default: title,
+    template: `%s | ${title}`,
+  },
+  applicationName: title,
+  description: description,
+  category: config.seo.category,
+  keywords: config.seo.keywords,
+  authors: [{ name: config.seo.author.name }, { url: config.seo.author.url }],
+  creator: config.seo.creator,
+  publisher: config.seo.publisher,
+  openGraph: {
+    title: title,
+    description: description,
+    url: url,
+    siteName: title,
+    images: [
+      {
+        url: `${url}api/og`,
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  manifest: `${url}manifest.json`,
 };
 
 export default function RootLayout({
