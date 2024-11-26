@@ -41,7 +41,7 @@ import {
 } from "./NumberFilter";
 import { PaginationControls } from "./PaginationControls";
 import { PriceFilter } from "./PriceFilter";
-import { ProductDetail } from "./ProductDetail";
+import { ProductDetailModal } from "./ProductDetailModal";
 import { ProductTableBody } from "./ProductTableBody";
 import { ProductTableFooter } from "./ProductTableFooter";
 import { ProductTableHeader } from "./ProductTableHeader";
@@ -688,7 +688,7 @@ export function ProductTable({
           }}
           productName={deleteProduct?.name ?? ""}
         />
-        <ProductDetail
+        <ProductDetailModal
           product={selectedProduct}
           isOpen={isDetailOpen}
           onOpenChange={setIsDetailOpen}
