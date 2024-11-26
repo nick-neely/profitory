@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface DeleteAllConfirmationModalProps {
   isOpen: boolean;
@@ -110,8 +111,13 @@ export function DeleteAllConfirmationModal({
     const normalizedInput = inputValue.replace(/\s/g, "");
     const normalizedPhrase = confirmationPhrase.replace(/\s/g, "");
     if (normalizedInput === normalizedPhrase) {
-      onConfirm();
-      onOpenChange(false);
+      try {
+        onConfirm();
+        toast.success("Successfully deleted all products");
+        onOpenChange(false);
+      } catch (error) {
+        toast.error("Failed to delete all products");
+      }
     }
   };
 

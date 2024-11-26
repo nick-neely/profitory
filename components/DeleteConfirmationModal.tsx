@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface DeleteConfirmationModalProps {
   isOpen: boolean;
@@ -22,8 +23,13 @@ export function DeleteConfirmationModal({
   productName,
 }: DeleteConfirmationModalProps) {
   const handleConfirm = () => {
-    onConfirm();
-    onOpenChange(false);
+    try {
+      onConfirm();
+      toast.success(`Successfully deleted "${productName}"`);
+      onOpenChange(false);
+    } catch (error) {
+      toast.error(`Failed to delete "${productName}"`);
+    }
   };
 
   return (
