@@ -8,8 +8,6 @@ interface ExportOptions {
   filename?: string;
   fields?: DataFields[];
   formatters?: Partial<Record<DataFields, (value: string | number) => string>>;
-  includeHeaders?: boolean;
-  format?: "csv" | "clipboard"; // New option to differentiate format
 }
 
 const defaultFormatters: Partial<
@@ -20,7 +18,7 @@ const defaultFormatters: Partial<
   profit: (value) => formatCurrency(Number(value)),
 };
 
-export function formatDataForExport(
+function formatDataForExport(
   data: ExportableData,
   options: ExportOptions = {}
 ) {
@@ -28,6 +26,10 @@ export function formatDataForExport(
   const fields =
     options.fields || (Object.keys(items[0] || {}) as DataFields[]);
   const formatters = { ...defaultFormatters, ...options.formatters };
+
+  const headers = fields.map(
+    (field) => field.charAt(0).toUpperCase() + field.slice(1)
+  );
 
   const rows = items.map((item) =>
     fields.map((field) => {
@@ -37,20 +39,6 @@ export function formatDataForExport(
     })
   );
 
-  // For single column exports, join rows with spaces for clipboard
-  if (fields.length === 1 && options.format === "clipboard") {
-    return rows.map((row) => row[0]).join(", ");
-  }
-
-  // For clipboard format, just join the data rows
-  if (options.format === "clipboard") {
-    return rows.map((row) => row.join(", ")).join("\n");
-  }
-
-  // For CSV format, include headers
-  const headers = fields.map(
-    (field) => field.charAt(0).toUpperCase() + field.slice(1)
-  );
   return [headers, ...rows].map((row) => row.join(",")).join("\n");
 }
 
@@ -58,7 +46,7 @@ export function exportToCSV(
   data: ExportableData,
   options: ExportOptions = {}
 ): void {
-  const csvContent = formatDataForExport(data, { ...options, format: "csv" });
+  const csvContent = formatDataForExport(data, options);
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -79,7 +67,6 @@ export async function copyToClipboard(
   try {
     const content = formatDataForExport(data, {
       ...options,
-      format: "clipboard",
     });
     await navigator.clipboard.writeText(content);
   } catch (err) {

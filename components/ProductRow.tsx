@@ -10,7 +10,8 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { Product } from "@/hooks/useProducts";
 import { cn, formatCurrency } from "@/lib/utils";
 import { ColumnConfig, RowActions } from "@/types/product-table";
-import { copyToClipboard, exportToCSV } from "@/utils/export";
+import { copyToClipboard } from "@/utils/copy";
+import { exportToCSV } from "@/utils/export";
 import { toast } from "sonner";
 import { EditProductForm } from "./EditProductForm";
 

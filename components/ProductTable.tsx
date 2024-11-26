@@ -40,7 +40,8 @@ import { PRODUCT_CONDITIONS } from "@/constants";
 import { Product, ProductInput } from "@/hooks/useProducts";
 import { useProductTable } from "@/hooks/useProductTable";
 import { cn, formatCurrency } from "@/lib/utils";
-import { copyToClipboard, exportToCSV } from "@/utils/export";
+import { exportToCSV } from "@/utils/export";
+import { copyToClipboard } from "@/utils/copy";
 import {
   ArrowUpDown,
   Download,
