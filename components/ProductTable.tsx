@@ -30,12 +30,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { columnConstraints, PRODUCT_CONDITIONS } from "@/constants";
 import { useColumnResize } from "@/hooks/useColumnResize";
 import { Product, ProductInput } from "@/hooks/useProducts";
@@ -43,17 +37,10 @@ import { useProductTable } from "@/hooks/useProductTable";
 import { cn, formatCurrency } from "@/lib/utils";
 import { copyToClipboard } from "@/utils/copy";
 import { exportToCSV } from "@/utils/export";
-import {
-  ArrowUpDown,
-  Download,
-  Filter,
-  Loader2,
-  SortAsc,
-  SortDesc,
-  Trash,
-} from "lucide-react";
+import { ArrowUpDown, Loader2, SortAsc, SortDesc } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { ControlsBar } from "./ControlsBar";
 import { DeleteAllConfirmationModal } from "./DeleteAllConfirmationModal";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import {
@@ -64,8 +51,6 @@ import { PaginationControls } from "./PaginationControls";
 import { PriceFilter } from "./PriceFilter";
 import { ProductDetail } from "./ProductDetail";
 import { ProductRow } from "./ProductRow";
-
-// Move this to a constants file or keep it here if it's specific to the ProductTable
 
 interface ProductTableProps {
   products: Product[];
@@ -611,76 +596,15 @@ export function ProductTable({
   return (
     <div className="space-y-6 py-4">
       <div className="relative" ref={containerRef}>
-        {/* Controls bar */}
-        <div className="flex justify-between items-center mb-4 bg-background">
-          <div className="flex space-x-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={showFilterInputs ? "secondary" : "outline"}
-                    onClick={() => {
-                      if (showFilterInputs) {
-                        setFilters({});
-                      }
-                      setShowFilterInputs(!showFilterInputs);
-                    }}
-                  >
-                    <Filter className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{showFilterInputs ? "Hide Filters" : "Show Filters"}</p>
-                </TooltipContent>
-              </Tooltip>
+        <ControlsBar
+          showFilterInputs={showFilterInputs}
+          setShowFilterInputs={setShowFilterInputs}
+          setFilters={setFilters}
+          handleExportToCSV={handleExportToCSV}
+          setIsDeleteAllModalOpen={setIsDeleteAllModalOpen}
+          isExportDisabled={sortedProducts.length === 0}
+        />
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    onClick={handleExportToCSV}
-                    disabled={sortedProducts.length === 0}
-                  >
-                    <Download
-                      className={`h-4 w-4 ${
-                        sortedProducts.length === 0
-                          ? "text-muted-foreground"
-                          : ""
-                      }`}
-                    />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Export to CSV</p>
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsDeleteAllModalOpen(true)}
-                    disabled={sortedProducts.length === 0}
-                    className="hover:bg-red-500 hover:text-white"
-                  >
-                    <Trash
-                      className={`h-4 w-4 ${
-                        sortedProducts.length === 0
-                          ? "text-muted-foreground"
-                          : ""
-                      }`}
-                    />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Delete All Products</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </div>
-
-        {/* Scrollable table container */}
         <div className="relative rounded-md border">
           {isLoading && (
             <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-50">
@@ -693,7 +617,6 @@ export function ProductTable({
                 className={cn(
                   stickyHeader && "sticky top-0 z-10 bg-background",
                   "[&_tr]:bg-background",
-                  // Make the border more visible
                   stickyHeader &&
                     "[&_tr:first-child]:border-b-2 [&_tr:first-child]:border-border"
                 )}
