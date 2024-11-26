@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Table } from "@/components/ui/table";
 import { columnConstraints, PRODUCT_CONDITIONS } from "@/constants";
+import { useColumnManagement } from "@/hooks/useColumnManagement";
 import { useColumnResize } from "@/hooks/useColumnResize";
 import { Product, ProductInput } from "@/hooks/useProducts";
 import { useProductTable } from "@/hooks/useProductTable";
@@ -93,35 +94,17 @@ export function ProductTable({
     "profit",
   ]);
 
-  const defaultColumns = useMemo<(keyof Product)[]>(
-    () => [
-      "brand",
-      "name",
-      "cost",
-      "price",
-      "profit",
-      "quantity",
-      "condition",
-      "category",
-    ],
-    []
-  );
-
-  const [columns, setColumns] = useState<(keyof Product)[]>(defaultColumns);
-
-  const toggleColumn = (column: keyof Product) => {
-    setColumns((prev) =>
-      prev.includes(column)
-        ? prev.filter((col) => col !== column)
-        : [...prev, column]
-    );
-  };
-
-  const resetColumns = useCallback(() => {
-    setColumns(defaultColumns);
-  }, [defaultColumns]);
-
-  const hiddenColumnsCount = defaultColumns.length - columns.length;
+  const {
+    columns,
+    toggleColumn,
+    resetColumns,
+    hiddenColumnsCount,
+    pinnedColumns,
+    pinColumn,
+    unpinColumn,
+    sortedColumns,
+    defaultColumns,
+  } = useColumnManagement();
 
   const handleExportToCSV = () => {
     exportToCSV(sortedProducts, {
@@ -226,32 +209,6 @@ export function ProductTable({
     setIsDetailOpen(true);
   }, []);
 
-  const [pinnedColumns, setPinnedColumns] = useState<{
-    left: (keyof Product)[];
-    right: (keyof Product)[];
-  }>({
-    left: [],
-    right: [],
-  });
-
-  const pinColumn = (column: keyof Product, position: "left" | "right") => {
-    setPinnedColumns((prev) => {
-      const otherPosition = position === "left" ? "right" : "left";
-      return {
-        ...prev,
-        [position]: [...prev[position], column],
-        [otherPosition]: prev[otherPosition].filter((col) => col !== column),
-      };
-    });
-  };
-
-  const unpinColumn = (column: keyof Product) => {
-    setPinnedColumns((prev) => ({
-      left: prev.left.filter((col) => col !== column),
-      right: prev.right.filter((col) => col !== column),
-    }));
-  };
-
   const columnWidthsInit = useMemo(
     () => ({
       brand: 150,
@@ -279,7 +236,6 @@ export function ProductTable({
     columnConstraints,
   });
 
-  // Add event listeners
   useEffect(() => {
     if (isResizing) {
       document.addEventListener("mousemove", handleMouseMove);
@@ -291,7 +247,7 @@ export function ProductTable({
     }
   }, [isResizing, handleMouseMove, handleMouseUp]);
 
-  // Add CSS variables for initial column widths with constraints
+  // CSS variables for initial column widths with constraints
   useEffect(() => {
     Object.entries(columnWidthsInit).forEach(([column, width]) => {
       const { minWidth, maxWidth } = columnConstraints[column];
@@ -524,68 +480,13 @@ export function ProductTable({
       setFilters,
       handleExportColumn,
       handleCopyColumnToClipboard,
+      toggleColumn,
+      pinColumn,
+      unpinColumn,
       handleMouseDown,
       widths,
     ]
   );
-
-  const visibleColumns = columns;
-
-  const sortedColumns = [
-    ...pinnedColumns.left,
-    ...visibleColumns.filter(
-      (col) =>
-        !pinnedColumns.left.includes(col) && !pinnedColumns.right.includes(col)
-    ),
-    ...pinnedColumns.right,
-  ];
-
-  // const exportRowToCSV = useCallback(
-  //   (product: Product) => {
-  //     const headers = columns;
-  //     const row = columns.map((column) => {
-  //       const value = product[column];
-  //       return column === "price" || column === "cost" || column === "profit"
-  //         ? formatCurrency(value as number)
-  //         : String(value);
-  //     });
-
-  //     const csvContent = [headers, row]
-  //       .map((row) => row.map((item) => `"${item}"`).join(","))
-  //       .join("\n");
-
-  //     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  //     const url = URL.createObjectURL(blob);
-  //     const link = document.createElement("a");
-  //     link.setAttribute("href", url);
-  //     link.setAttribute("download", `product-${product.id}.csv`);
-  //     link.style.visibility = "hidden";
-  //     document.body.appendChild(link);
-  //     link.click();
-  //     document.body.removeChild(link);
-  //   },
-  //   [columns]
-  // );
-
-  // const copyRowToClipboard = useCallback(
-  //   async (product: Product) => {
-  //     const rowData = columns
-  //       .map((column) => {
-  //         const value = product[column];
-  //         return column === "price" || column === "cost" || column === "profit"
-  //           ? formatCurrency(value as number)
-  //           : String(value);
-  //       })
-  //       .join(", ");
-
-  //     try {
-  //       await navigator.clipboard.writeText(rowData);
-  //     } catch (err) {
-  //       console.error("Failed to copy to clipboard:", err);
-  //     }
-  //   },
-  //   [columns]
-  // );
 
   return (
     <div className="space-y-6 py-4">
@@ -607,7 +508,6 @@ export function ProductTable({
           )}
           <div className="overflow-auto max-h-[calc(100vh-12rem)]">
             <Table className={cn(isResizing ? "select-none" : "", "relative")}>
-              {/* Replace the existing TableHeader with the ProductTableHeader component */}
               <ProductTableHeader
                 sortedColumns={sortedColumns}
                 renderColumnHeader={renderColumnHeader}
