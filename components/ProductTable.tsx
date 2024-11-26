@@ -26,8 +26,6 @@ import {
   TableBody,
   TableCell,
   TableFooter,
-  TableHead,
-  TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { columnConstraints, PRODUCT_CONDITIONS } from "@/constants";
@@ -51,6 +49,7 @@ import { PaginationControls } from "./PaginationControls";
 import { PriceFilter } from "./PriceFilter";
 import { ProductDetail } from "./ProductDetail";
 import { ProductRow } from "./ProductRow";
+import { ProductTableHeader } from "./ProductTableHeader";
 
 interface ProductTableProps {
   products: Product[];
@@ -613,50 +612,31 @@ export function ProductTable({
           )}
           <div className="overflow-auto max-h-[calc(100vh-12rem)]">
             <Table className={cn(isResizing ? "select-none" : "", "relative")}>
-              <TableHeader
-                className={cn(
-                  stickyHeader && "sticky top-0 z-10 bg-background",
-                  "[&_tr]:bg-background",
-                  stickyHeader &&
-                    "[&_tr:first-child]:border-b-2 [&_tr:first-child]:border-border"
-                )}
-              >
-                <TableRow>
-                  {sortedColumns.map((column) => (
-                    <TableHead
-                      key={column}
-                      style={{
-                        width: `var(--column-width-${column})`,
-                        position: "relative",
-                      }}
-                      className={cn(
-                        "transition-none", // Disable transitions during resize
-                        pinnedColumns.left.includes(column) &&
-                          "sticky left-0 bg-background",
-                        pinnedColumns.right.includes(column) &&
-                          "sticky right-0 bg-background"
-                      )}
-                    >
-                      {renderColumnHeader(column)}
-                    </TableHead>
-                  ))}
-                  <TableHead className="sticky right-0 bg-background">
-                    Action
-                  </TableHead>
-                </TableRow>
-                {showFilterInputs && (
-                  <TableRow>
-                    {columns.map((column) => (
-                      <TableHead key={`filter-${column}`}>
-                        <div data-filter={column}>
-                          {renderFilterInput(column)}
-                        </div>
-                      </TableHead>
-                    ))}
-                    <TableHead></TableHead>
-                  </TableRow>
-                )}
-              </TableHeader>
+              {/* Replace the existing TableHeader with the ProductTableHeader component */}
+              <ProductTableHeader
+                sortedColumns={sortedColumns}
+                renderColumnHeader={renderColumnHeader}
+                showFilterInputs={showFilterInputs}
+                columns={columns}
+                renderFilterInput={renderFilterInput}
+                pinnedColumns={pinnedColumns}
+                stickyHeader={stickyHeader}
+                handleMouseDown={handleMouseDown}
+                widths={widths}
+                filters={filters}
+                handleSort={handleSort}
+                setFilters={setFilters}
+                resetColumnWidths={resetColumnWidths}
+                resetColumns={resetColumns}
+                toggleColumn={toggleColumn}
+                hiddenColumnsCount={hiddenColumnsCount}
+                defaultColumns={defaultColumns}
+                stickyFooter={stickyFooter}
+                setStickyFooter={setStickyFooter}
+                setShowFilterInputs={setShowFilterInputs}
+              />
+
+              {/* Rest of the table component */}
               <TableBody>
                 {paginatedProducts.map((product) => (
                   <ProductRow
