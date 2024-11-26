@@ -190,6 +190,13 @@ export function ProductTable({
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
   const [stickyHeader, setStickyHeader] = useState(true);
+  const [stickyFooter, setStickyFooter] = useState(false);
+  const [visibleTotals, setVisibleTotals] = useState<(keyof Product)[]>([
+    "quantity",
+    "price",
+    "cost",
+    "profit",
+  ]);
 
   const defaultColumns = useMemo<(keyof Product)[]>(
     () => [
@@ -944,36 +951,109 @@ export function ProductTable({
                   </ContextMenu>
                 ))}
               </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TableCell colSpan={5} className="font-medium">
-                    Totals
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {sortedProducts.reduce(
-                      (total, product) => total + product.quantity,
-                      0
-                    )}{" "}
-                    items
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {formatCurrency(
-                      sortedProducts.reduce(
-                        (total, product) =>
-                          total + product.price * product.quantity,
-                        0
-                      )
-                    )}
-                  </TableCell>
-                  <TableCell />
-                  <TableCell />
-                </TableRow>
+              <TableFooter
+                className={cn(
+                  stickyFooter && "sticky bottom-0 bg-background border-t-2"
+                )}
+              >
+                <ContextMenu>
+                  <ContextMenuTrigger asChild>
+                    <TableRow>
+                      <TableCell colSpan={5} className="font-medium">
+                        Totals
+                      </TableCell>
+                      {sortedColumns.map((column) =>
+                        visibleTotals.includes(column) ? (
+                          <TableCell key={column} className="font-medium">
+                            <div className="flex flex-col items-center">
+                              <span className="text-xs text-muted-foreground">
+                                {column.charAt(0).toUpperCase() +
+                                  column.slice(1)}
+                              </span>
+                              <span>
+                                {column === "quantity"
+                                  ? `${paginatedProducts.reduce(
+                                      (total, product) =>
+                                        total + product.quantity,
+                                      0
+                                    )} items`
+                                  : formatCurrency(
+                                      paginatedProducts.reduce(
+                                        (total, product) =>
+                                          total +
+                                          (product[column] as number) *
+                                            ([
+                                              "price",
+                                              "cost",
+                                              "profit",
+                                            ].includes(column)
+                                              ? product.quantity
+                                              : 1),
+                                        0
+                                      )
+                                    )}
+                              </span>
+                            </div>
+                          </TableCell>
+                        ) : null
+                      )}
+                      <TableCell />
+                    </TableRow>
+                  </ContextMenuTrigger>
+                  <ContextMenuContent>
+                    <ContextMenuCheckboxItem
+                      checked={stickyFooter}
+                      onCheckedChange={setStickyFooter}
+                    >
+                      Sticky Totals Row
+                    </ContextMenuCheckboxItem>
+                    <ContextMenuSeparator />
+                    <ContextMenuSub>
+                      <ContextMenuSubTrigger>
+                        Visible Totals
+                      </ContextMenuSubTrigger>
+                      <ContextMenuSubContent>
+                        {["quantity", "price", "cost", "profit"].map(
+                          (column) => (
+                            <ContextMenuCheckboxItem
+                              key={column}
+                              checked={visibleTotals.includes(
+                                column as keyof Product
+                              )}
+                              onCheckedChange={(checked) => {
+                                setVisibleTotals((prev) =>
+                                  checked
+                                    ? [...prev, column as keyof Product]
+                                    : prev.filter((col) => col !== column)
+                                );
+                              }}
+                            >
+                              {column.charAt(0).toUpperCase() + column.slice(1)}
+                            </ContextMenuCheckboxItem>
+                          )
+                        )}
+                        <ContextMenuSeparator />
+                        <ContextMenuItem
+                          onClick={() =>
+                            setVisibleTotals([
+                              "quantity",
+                              "price",
+                              "cost",
+                              "profit",
+                            ])
+                          }
+                        >
+                          Reset Totals
+                        </ContextMenuItem>
+                      </ContextMenuSubContent>
+                    </ContextMenuSub>
+                  </ContextMenuContent>
+                </ContextMenu>
               </TableFooter>
             </Table>
           </div>
         </div>
 
-        {/* Add PaginationControls component */}
         <div className="border-t bg-slate-50 dark:bg-slate-900">
           <div className="px-4 py-3">
             <PaginationControls
