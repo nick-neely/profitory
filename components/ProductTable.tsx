@@ -42,8 +42,6 @@ import { useProductTable } from "@/hooks/useProductTable";
 import { cn, formatCurrency } from "@/lib/utils";
 import {
   ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
   Download,
   Filter,
   Loader2,
@@ -59,6 +57,7 @@ import {
   NumberFilter,
   type NumberFilter as TNumberFilter,
 } from "./NumberFilter";
+import { PaginationControls } from "./PaginationControls";
 import { PriceFilter } from "./PriceFilter";
 import { ProductDetail } from "./ProductDetail";
 
@@ -670,21 +669,23 @@ export function ProductTable({
       );
     },
     [
-      handleMouseDown,
-      widths,
-      columns,
-      copyColumnToClipboard,
-      defaultColumns,
-      exportColumn,
-      filters,
-      hiddenColumnsCount,
       pinnedColumns.left,
       pinnedColumns.right,
-      resetColumns,
-      resetColumnWidths,
-      sortConfig.direction,
       sortConfig.key,
+      sortConfig.direction,
+      filters,
       stickyHeader,
+      resetColumnWidths,
+      columns,
+      resetColumns,
+      hiddenColumnsCount,
+      defaultColumns,
+      handleSort,
+      setFilters,
+      exportColumn,
+      copyColumnToClipboard,
+      handleMouseDown,
+      widths,
     ]
   );
 
@@ -748,9 +749,8 @@ export function ProductTable({
 
   return (
     <div className="space-y-6 py-4">
-      {/* Create a wrapper div with relative positioning and overflow */}
       <div className="relative" ref={containerRef}>
-        {/* Controls bar - keep this outside the scrollable area */}
+        {/* Controls bar */}
         <div className="flex justify-between items-center mb-4 bg-background">
           <div className="flex space-x-2">
             <TooltipProvider>
@@ -816,29 +816,6 @@ export function ProductTable({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-muted-foreground">
-              Items per page:
-            </span>
-            <Select
-              value={String(itemsPerPage)}
-              onValueChange={(value) => {
-                setItemsPerPage(Number(value));
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="w-[100px]">
-                <SelectValue>{itemsPerPage}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {[5, 10, 20, 50, 100].map((value) => (
-                  <SelectItem key={value} value={String(value)}>
-                    {value}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </div>
 
@@ -991,53 +968,26 @@ export function ProductTable({
                   <TableCell />
                   <TableCell />
                 </TableRow>
-                <TableRow className="bg-slate-50 dark:bg-slate-900">
-                  <TableCell colSpan={9}>
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-muted-foreground">
-                        Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                        {Math.min(
-                          currentPage * itemsPerPage,
-                          sortedProducts.length
-                        )}{" "}
-                        of {sortedProducts.length} items
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            setCurrentPage((prev) => Math.max(1, prev - 1))
-                          }
-                          disabled={currentPage === 1}
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <div className="text-sm">
-                          Page {currentPage} of {totalPages}
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            setCurrentPage((prev) =>
-                              Math.min(totalPages, prev + 1)
-                            )
-                          }
-                          disabled={currentPage === totalPages}
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
               </TableFooter>
             </Table>
           </div>
         </div>
 
-        {/* Modals - keep these outside the scrollable area */}
+        {/* Add PaginationControls component */}
+        <div className="border-t bg-slate-50 dark:bg-slate-900">
+          <div className="px-4 py-3">
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              itemsPerPage={itemsPerPage}
+              setCurrentPage={setCurrentPage}
+              setItemsPerPage={setItemsPerPage}
+              totalItems={sortedProducts.length}
+            />
+          </div>
+        </div>
+
+        {/* Modals */}
         <DeleteAllConfirmationModal
           isOpen={isDeleteAllModalOpen}
           onOpenChange={setIsDeleteAllModalOpen}
