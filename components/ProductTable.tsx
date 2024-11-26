@@ -21,12 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Table, TableCell, TableFooter, TableRow } from "@/components/ui/table";
+import { Table } from "@/components/ui/table";
 import { columnConstraints, PRODUCT_CONDITIONS } from "@/constants";
 import { useColumnResize } from "@/hooks/useColumnResize";
 import { Product, ProductInput } from "@/hooks/useProducts";
 import { useProductTable } from "@/hooks/useProductTable";
-import { cn, formatCurrency } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { copyToClipboard } from "@/utils/copy";
 import { exportToCSV } from "@/utils/export";
 import { ArrowUpDown, Loader2, SortAsc, SortDesc } from "lucide-react";
@@ -43,6 +43,7 @@ import { PaginationControls } from "./PaginationControls";
 import { PriceFilter } from "./PriceFilter";
 import { ProductDetail } from "./ProductDetail";
 import { ProductTableBody } from "./ProductTableBody";
+import { ProductTableFooter } from "./ProductTableFooter";
 import { ProductTableHeader } from "./ProductTableHeader";
 
 interface ProductTableProps {
@@ -645,105 +646,14 @@ export function ProductTable({
                 }}
               />
 
-              <TableFooter
-                className={cn(
-                  stickyFooter && "sticky bottom-0 bg-background border-t-2"
-                )}
-              >
-                <ContextMenu>
-                  <ContextMenuTrigger asChild>
-                    <TableRow>
-                      <TableCell colSpan={5} className="font-medium">
-                        Totals
-                      </TableCell>
-                      {sortedColumns.map((column) =>
-                        visibleTotals.includes(column) ? (
-                          <TableCell key={column} className="font-medium">
-                            <div className="flex flex-col items-center">
-                              <span className="text-xs text-muted-foreground">
-                                {column.charAt(0).toUpperCase() +
-                                  column.slice(1)}
-                              </span>
-                              <span>
-                                {column === "quantity"
-                                  ? `${paginatedProducts.reduce(
-                                      (total, product) =>
-                                        total + product.quantity,
-                                      0
-                                    )} items`
-                                  : formatCurrency(
-                                      paginatedProducts.reduce(
-                                        (total, product) =>
-                                          total +
-                                          (product[column] as number) *
-                                            ([
-                                              "price",
-                                              "cost",
-                                              "profit",
-                                            ].includes(column)
-                                              ? product.quantity
-                                              : 1),
-                                        0
-                                      )
-                                    )}
-                              </span>
-                            </div>
-                          </TableCell>
-                        ) : null
-                      )}
-                      <TableCell />
-                    </TableRow>
-                  </ContextMenuTrigger>
-                  <ContextMenuContent>
-                    <ContextMenuCheckboxItem
-                      checked={stickyFooter}
-                      onCheckedChange={setStickyFooter}
-                    >
-                      Sticky Totals Row
-                    </ContextMenuCheckboxItem>
-                    <ContextMenuSeparator />
-                    <ContextMenuSub>
-                      <ContextMenuSubTrigger>
-                        Visible Totals
-                      </ContextMenuSubTrigger>
-                      <ContextMenuSubContent>
-                        {["quantity", "price", "cost", "profit"].map(
-                          (column) => (
-                            <ContextMenuCheckboxItem
-                              key={column}
-                              checked={visibleTotals.includes(
-                                column as keyof Product
-                              )}
-                              onCheckedChange={(checked) => {
-                                setVisibleTotals((prev) =>
-                                  checked
-                                    ? [...prev, column as keyof Product]
-                                    : prev.filter((col) => col !== column)
-                                );
-                              }}
-                            >
-                              {column.charAt(0).toUpperCase() + column.slice(1)}
-                            </ContextMenuCheckboxItem>
-                          )
-                        )}
-                        <ContextMenuSeparator />
-                        <ContextMenuItem
-                          onClick={() =>
-                            setVisibleTotals([
-                              "quantity",
-                              "price",
-                              "cost",
-                              "profit",
-                            ])
-                          }
-                        >
-                          Reset Totals
-                        </ContextMenuItem>
-                      </ContextMenuSubContent>
-                    </ContextMenuSub>
-                  </ContextMenuContent>
-                </ContextMenu>
-              </TableFooter>
+              <ProductTableFooter
+                paginatedProducts={paginatedProducts}
+                sortedColumns={sortedColumns}
+                visibleTotals={visibleTotals}
+                setVisibleTotals={setVisibleTotals}
+                stickyFooter={stickyFooter}
+                setStickyFooter={setStickyFooter}
+              />
             </Table>
           </div>
         </div>
