@@ -21,13 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableCell, TableFooter, TableRow } from "@/components/ui/table";
 import { columnConstraints, PRODUCT_CONDITIONS } from "@/constants";
 import { useColumnResize } from "@/hooks/useColumnResize";
 import { Product, ProductInput } from "@/hooks/useProducts";
@@ -48,7 +42,7 @@ import {
 import { PaginationControls } from "./PaginationControls";
 import { PriceFilter } from "./PriceFilter";
 import { ProductDetail } from "./ProductDetail";
-import { ProductRow } from "./ProductRow";
+import { ProductTableBody } from "./ProductTableBody";
 import { ProductTableHeader } from "./ProductTableHeader";
 
 interface ProductTableProps {
@@ -636,28 +630,21 @@ export function ProductTable({
                 setShowFilterInputs={setShowFilterInputs}
               />
 
-              {/* Rest of the table component */}
-              <TableBody>
-                {paginatedProducts.map((product) => (
-                  <ProductRow
-                    key={product.id}
-                    product={product}
-                    columnConfig={{
-                      pinnedColumns,
-                      visibleColumns: columns,
-                      sortedColumns,
-                    }}
-                    actions={{
-                      onEditProduct,
-                      onRemoveProduct: (id) =>
-                        setDeleteProduct(
-                          products.find((p) => p.id === id) || null
-                        ),
-                      onRowClick: handleRowClick,
-                    }}
-                  />
-                ))}
-              </TableBody>
+              <ProductTableBody
+                paginatedProducts={paginatedProducts}
+                columnConfig={{
+                  pinnedColumns,
+                  visibleColumns: columns,
+                  sortedColumns,
+                }}
+                actions={{
+                  onEditProduct,
+                  onRemoveProduct: (id) =>
+                    setDeleteProduct(products.find((p) => p.id === id) || null),
+                  onRowClick: handleRowClick,
+                }}
+              />
+
               <TableFooter
                 className={cn(
                   stickyFooter && "sticky bottom-0 bg-background border-t-2"
