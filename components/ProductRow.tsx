@@ -13,7 +13,7 @@ import { ColumnConfig, RowActions } from "@/types/product-table";
 import { copyToClipboard } from "@/utils/copy";
 import { exportToCSV } from "@/utils/export";
 import { toast } from "sonner";
-import { EditProductForm } from "./EditProductForm";
+import { EditProductFormModal } from "./EditProductFormModal";
 
 interface ProductRowProps {
   product: Product;
@@ -73,7 +73,7 @@ export function ProductRow({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex space-x-2">
-              <EditProductForm
+              <EditProductFormModal
                 product={product}
                 onEditProduct={actions.onEditProduct}
               />

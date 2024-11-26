@@ -19,24 +19,30 @@ import {
 import { PRODUCT_CONDITIONS } from "@/constants";
 import { Product, ProductInput } from "@/hooks/useProducts";
 import { useState } from "react";
+import { toast } from "sonner";
 
-interface EditProductFormProps {
+interface EditProductFormModalProps {
   product: Product;
   onEditProduct: (id: string, product: ProductInput) => void;
 }
 
-export function EditProductForm({
+export function EditProductFormModal({
   product,
   onEditProduct,
-}: EditProductFormProps) {
+}: EditProductFormModalProps) {
   const [editedProduct, setEditedProduct] =
     useState<Omit<Product, "id">>(product);
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onEditProduct(product.id, editedProduct);
-    setIsOpen(false);
+    try {
+      onEditProduct(product.id, editedProduct);
+      toast.success("Product updated successfully");
+      setIsOpen(false);
+    } catch (error) {
+      toast.error("Failed to update product");
+    }
   };
 
   return (
