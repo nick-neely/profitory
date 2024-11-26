@@ -1,5 +1,11 @@
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -7,28 +13,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { formatCurrency } from "@/lib/utils";
-import { DollarSign } from "lucide-react";
+import { Hash } from "lucide-react";
 
-type PriceOperator = "=" | ">" | ">=" | "<" | "<=";
+export type NumberOperator = "=" | ">" | ">=" | "<" | "<=";
 
-type PriceFilter = {
-  operator: PriceOperator;
+export type NumberFilterType = {
+  operator: NumberOperator;
   value: number;
 } | null;
 
-interface PriceFilterProps {
-  value: PriceFilter;
-  onChange: (filter: PriceFilter) => void;
+interface NumberFilterProps {
+  value: NumberFilterType;
+  onChange: (filter: NumberFilterType) => void;
+  placeholder?: string;
+  step?: number;
+  min?: number;
 }
 
-const OPERATORS: { value: PriceOperator; label: string }[] = [
+const OPERATORS: { value: NumberOperator; label: string }[] = [
   { value: "=", label: "Equal to" },
   { value: ">", label: "Greater than" },
   { value: ">=", label: "Greater than or equal to" },
@@ -36,27 +38,33 @@ const OPERATORS: { value: PriceOperator; label: string }[] = [
   { value: "<=", label: "Less than or equal to" },
 ];
 
-export function PriceFilter({ value, onChange }: PriceFilterProps) {
+export function NumberFilterInput({ 
+  value, 
+  onChange, 
+  placeholder = "Filter number...",
+  step = 1,
+  min = 0 
+}: NumberFilterProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline" className="w-full justify-start">
-          <DollarSign className="mr-2 h-4 w-4" />
+          <Hash className="mr-2 h-4 w-4" />
           {value ? (
             <span>
-              {value.operator} {formatCurrency(value.value)}
+              {value.operator} {value.value}
             </span>
           ) : (
-            <span>Filter price...</span>
+            <span>{placeholder}</span>
           )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80">
         <div className="grid gap-4">
           <div className="space-y-2">
-            <h4 className="font-medium leading-none">Price Filter</h4>
+            <h4 className="font-medium leading-none">Number Filter</h4>
             <p className="text-sm text-muted-foreground">
-              Set the price filter criteria
+              Set the numeric filter criteria
             </p>
           </div>
           <div className="grid gap-2">
@@ -64,7 +72,7 @@ export function PriceFilter({ value, onChange }: PriceFilterProps) {
               value={value?.operator || "="}
               onValueChange={(op) =>
                 onChange({
-                  operator: op as PriceOperator,
+                  operator: op as NumberOperator,
                   value: value?.value || 0,
                 })
               }
@@ -82,9 +90,9 @@ export function PriceFilter({ value, onChange }: PriceFilterProps) {
             </Select>
             <Input
               type="number"
-              step="0.01"
-              min="0"
-              placeholder="Enter price..."
+              step={step}
+              min={min}
+              placeholder="Enter value..."
               value={value?.value || ""}
               onChange={(e) =>
                 onChange({

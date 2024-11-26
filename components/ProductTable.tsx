@@ -13,39 +13,41 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Table } from "@/components/ui/table";
-import { columnConstraints, PRODUCT_CONDITIONS } from "@/constants";
+import { columnConstraints } from "@/constants";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import { useColumnResize } from "@/hooks/useColumnResize";
 import { Product, ProductInput } from "@/hooks/useProducts";
-import { useProductTable } from "@/hooks/useProductTable";
+import { NumberFilter, useProductTable } from "@/hooks/useProductTable";
 import { cn } from "@/lib/utils";
 import { copyToClipboard } from "@/utils/copy";
 import { exportToCSV } from "@/utils/export";
-import { ArrowUpDown, Loader2, SortAsc, SortDesc } from "lucide-react";
+import {
+  ArrowUpDown,
+  Calculator,
+  DollarSign,
+  Loader2,
+  PiggyBank,
+  SortAsc,
+  SortDesc,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { ConditionFilterInput } from "./ConditionFilterInput";
 import { ControlsBar } from "./ControlsBar";
 import { DeleteAllConfirmationModal } from "./DeleteAllConfirmationModal";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import { NumberFilterInput } from "./NumberFilterInput";
 import {
-  NumberFilter,
-  type NumberFilter as TNumberFilter,
-} from "./NumberFilter";
+  NumberFilterPopover,
+  type NumberFilterType,
+} from "./NumberFilterPopover";
 import { PaginationControls } from "./PaginationControls";
-import { PriceFilter } from "./PriceFilter";
 import { ProductDetailModal } from "./ProductDetailModal";
 import { ProductTableBody } from "./ProductTableBody";
 import { ProductTableFooter } from "./ProductTableFooter";
 import { ProductTableHeader } from "./ProductTableHeader";
+import { TextFilterInput } from "./TextFilterInput";
 
 interface ProductTableProps {
   products: Product[];
@@ -54,9 +56,6 @@ interface ProductTableProps {
   onEditProduct: (id: string, product: ProductInput) => void;
   onRemoveAllProducts: () => void;
 }
-
-type PriceOperator = ">" | ">=" | "<" | "<=" | "=";
-type PriceFilter = { operator: PriceOperator; value: number } | null;
 
 export function ProductTable({
   products,
@@ -139,70 +138,83 @@ export function ProductTable({
     [sortedProducts]
   );
 
-  const renderFilterInput = (column: keyof Product) => {
-    if (column === "condition") {
-      return (
-        <Select
-          value={
-            typeof filters[column] === "string"
-              ? (filters[column] as string)
-              : "all"
-          }
-          onValueChange={(value) =>
-            handleFilterChange(column, value === "all" ? "" : value)
-          }
-        >
-          <SelectTrigger className="max-w-sm">
-            <SelectValue placeholder={`Filter ${column}`} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            {PRODUCT_CONDITIONS.map((condition) => (
-              <SelectItem key={condition} value={condition}>
-                {condition}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      );
-    }
+  const renderFilterInput = useCallback(
+    (column: keyof Product) => {
+      if (column === "condition") {
+        return (
+          <ConditionFilterInput
+            value={(filters[column] as string) || ""}
+            onChange={(value) => handleFilterChange(column, value)}
+          />
+        );
+      }
 
-    if (column === "price") {
+      if (column === "price") {
+        return (
+          <NumberFilterPopover
+            value={filters[column] as NumberFilterType}
+            onChange={(value) =>
+              setFilters((prev) => ({ ...prev, [column]: value }))
+            }
+            label="Price Filter"
+            placeholder="Filter by price..."
+            icon={<DollarSign className="mr-2 h-4 w-4" />}
+          />
+        );
+      }
+
+      if (column === "cost") {
+        return (
+          <NumberFilterPopover
+            value={filters[column] as NumberFilterType}
+            onChange={(value) =>
+              setFilters((prev) => ({ ...prev, [column]: value }))
+            }
+            label="Cost Filter"
+            placeholder="Filter by cost..."
+            icon={<PiggyBank className="mr-2 h-4 w-4" />}
+          />
+        );
+      }
+
+      if (column === "profit") {
+        return (
+          <NumberFilterPopover
+            value={filters[column] as NumberFilterType}
+            onChange={(value) =>
+              setFilters((prev) => ({ ...prev, [column]: value }))
+            }
+            label="Profit Filter"
+            placeholder="Filter by profit..."
+            icon={<Calculator className="mr-2 h-4 w-4" />}
+          />
+        );
+      }
+
+      if (column === "quantity") {
+        return (
+          <NumberFilterInput
+            value={filters[column] as NumberFilter}
+            onChange={(value) =>
+              setFilters((prev) => ({ ...prev, [column]: value }))
+            }
+            placeholder="Filter quantity..."
+            min={0}
+            step={1}
+          />
+        );
+      }
+
       return (
-        <PriceFilter
-          value={
-            filters[column] as { operator: PriceOperator; value: number } | null
-          }
-          onChange={(value) =>
-            setFilters((prev) => ({ ...prev, [column]: value }))
-          }
+        <TextFilterInput
+          placeholder={`Filter ${column}`}
+          value={(filters[column] as string) || ""}
+          onChange={(value) => handleFilterChange(column, value)}
         />
       );
-    }
-
-    if (column === "quantity") {
-      return (
-        <NumberFilter
-          value={filters[column] as TNumberFilter}
-          onChange={(value) =>
-            setFilters((prev) => ({ ...prev, [column]: value }))
-          }
-          placeholder="Filter quantity..."
-          min={0}
-          step={1}
-        />
-      );
-    }
-
-    return (
-      <Input
-        placeholder={`Filter ${column}`}
-        value={(filters[column] as string) || ""}
-        onChange={(e) => handleFilterChange(column, e.target.value)}
-        className="max-w-sm"
-      />
-    );
-  };
+    },
+    [filters, handleFilterChange, setFilters]
+  );
 
   const handleRowClick = useCallback((product: Product) => {
     setSelectedProduct(product);
