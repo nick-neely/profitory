@@ -40,8 +40,9 @@ export function EditProductFormModal({
       onEditProduct(product.id, editedProduct);
       toast.success("Product updated successfully");
       setIsOpen(false);
-    } catch (error) {
-      toast.error("Failed to update product");
+    } catch (err: unknown) {
+      const error = err as Error;
+      toast.error(`Failed to update product: ${error.message}`);
     }
   };
 

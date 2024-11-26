@@ -27,8 +27,9 @@ export function DeleteConfirmationModal({
       onConfirm();
       toast.success(`Successfully deleted "${productName}"`);
       onOpenChange(false);
-    } catch (error) {
-      toast.error(`Failed to delete "${productName}"`);
+    } catch (err: unknown) {
+      const error = err as Error;
+      toast.error(`Failed to delete "${productName}": ${error.message}`);
     }
   };
 

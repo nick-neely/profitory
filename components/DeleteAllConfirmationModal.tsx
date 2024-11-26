@@ -115,8 +115,9 @@ export function DeleteAllConfirmationModal({
         onConfirm();
         toast.success("Successfully deleted all products");
         onOpenChange(false);
-      } catch (error) {
-        toast.error("Failed to delete all products");
+      } catch (err: unknown) {
+        const error = err as Error;
+        toast.error(`Failed to delete all products: ${error.message}`);
       }
     }
   };
