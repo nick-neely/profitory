@@ -52,7 +52,6 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DeleteAllConfirmationModal } from "./DeleteAllConfirmationModal";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
-import { EditProductForm } from "./EditProductForm";
 import {
   NumberFilter,
   type NumberFilter as TNumberFilter,
@@ -60,6 +59,7 @@ import {
 import { PaginationControls } from "./PaginationControls";
 import { PriceFilter } from "./PriceFilter";
 import { ProductDetail } from "./ProductDetail";
+import { ProductRow } from "./ProductRow";
 
 // Define interface for column constraints
 interface ColumnConstraints {
@@ -379,12 +379,10 @@ export function ProductTable({
     );
   };
 
-  const handleRowClick = (product: Product) => {
-    return () => {
-      setSelectedProduct(product);
-      setIsDetailOpen(true);
-    };
-  };
+  const handleRowClick = useCallback((product: Product) => {
+    setSelectedProduct(product);
+    setIsDetailOpen(true);
+  }, []);
 
   const [pinnedColumns, setPinnedColumns] = useState<{
     left: (keyof Product)[];
@@ -707,52 +705,52 @@ export function ProductTable({
     ...pinnedColumns.right,
   ];
 
-  const exportRowToCSV = useCallback(
-    (product: Product) => {
-      const headers = columns;
-      const row = columns.map((column) => {
-        const value = product[column];
-        return column === "price" || column === "cost" || column === "profit"
-          ? formatCurrency(value as number)
-          : String(value);
-      });
+  // const exportRowToCSV = useCallback(
+  //   (product: Product) => {
+  //     const headers = columns;
+  //     const row = columns.map((column) => {
+  //       const value = product[column];
+  //       return column === "price" || column === "cost" || column === "profit"
+  //         ? formatCurrency(value as number)
+  //         : String(value);
+  //     });
 
-      const csvContent = [headers, row]
-        .map((row) => row.map((item) => `"${item}"`).join(","))
-        .join("\n");
+  //     const csvContent = [headers, row]
+  //       .map((row) => row.map((item) => `"${item}"`).join(","))
+  //       .join("\n");
 
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", `product-${product.id}.csv`);
-      link.style.visibility = "hidden";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    },
-    [columns]
-  );
+  //     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  //     const url = URL.createObjectURL(blob);
+  //     const link = document.createElement("a");
+  //     link.setAttribute("href", url);
+  //     link.setAttribute("download", `product-${product.id}.csv`);
+  //     link.style.visibility = "hidden";
+  //     document.body.appendChild(link);
+  //     link.click();
+  //     document.body.removeChild(link);
+  //   },
+  //   [columns]
+  // );
 
-  const copyRowToClipboard = useCallback(
-    async (product: Product) => {
-      const rowData = columns
-        .map((column) => {
-          const value = product[column];
-          return column === "price" || column === "cost" || column === "profit"
-            ? formatCurrency(value as number)
-            : String(value);
-        })
-        .join(", ");
+  // const copyRowToClipboard = useCallback(
+  //   async (product: Product) => {
+  //     const rowData = columns
+  //       .map((column) => {
+  //         const value = product[column];
+  //         return column === "price" || column === "cost" || column === "profit"
+  //           ? formatCurrency(value as number)
+  //           : String(value);
+  //       })
+  //       .join(", ");
 
-      try {
-        await navigator.clipboard.writeText(rowData);
-      } catch (err) {
-        console.error("Failed to copy to clipboard:", err);
-      }
-    },
-    [columns]
-  );
+  //     try {
+  //       await navigator.clipboard.writeText(rowData);
+  //     } catch (err) {
+  //       console.error("Failed to copy to clipboard:", err);
+  //     }
+  //   },
+  //   [columns]
+  // );
 
   return (
     <div className="space-y-6 py-4">
@@ -882,73 +880,23 @@ export function ProductTable({
               </TableHeader>
               <TableBody>
                 {paginatedProducts.map((product) => (
-                  <ContextMenu key={product.id}>
-                    <ContextMenuTrigger asChild>
-                      <TableRow
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={handleRowClick(product)}
-                      >
-                        {sortedColumns.map((column) => (
-                          <TableCell
-                            key={`${product.id}-${column}`}
-                            className={cn(
-                              pinnedColumns.left.includes(column) &&
-                                "sticky left-0 bg-background",
-                              pinnedColumns.right.includes(column) &&
-                                "sticky right-0 bg-background"
-                            )}
-                          >
-                            {column === "price" ||
-                            column === "cost" ||
-                            column === "profit"
-                              ? formatCurrency(product[column])
-                              : product[column]}
-                          </TableCell>
-                        ))}
-                        <TableCell
-                          className="sticky right-0 bg-background"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div className="flex space-x-2">
-                            <EditProductForm
-                              product={product}
-                              onEditProduct={onEditProduct}
-                            />
-                            <Button
-                              variant="outline"
-                              onClick={() => setDeleteProduct(product)}
-                              className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30"
-                            >
-                              Remove
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent>
-                      <ContextMenuItem
-                        onClick={() => handleRowClick(product)()}
-                      >
-                        View Details
-                      </ContextMenuItem>
-                      <ContextMenuSeparator />
-                      <ContextMenuItem onClick={() => exportRowToCSV(product)}>
-                        Export Row to CSV
-                      </ContextMenuItem>
-                      <ContextMenuItem
-                        onClick={() => copyRowToClipboard(product)}
-                      >
-                        Copy Row to Clipboard
-                      </ContextMenuItem>
-                      <ContextMenuSeparator />
-                      <ContextMenuItem
-                        className="text-red-600"
-                        onClick={() => setDeleteProduct(product)}
-                      >
-                        Delete Row
-                      </ContextMenuItem>
-                    </ContextMenuContent>
-                  </ContextMenu>
+                  <ProductRow
+                    key={product.id}
+                    product={product}
+                    columnConfig={{
+                      pinnedColumns,
+                      visibleColumns: columns,
+                      sortedColumns,
+                    }}
+                    actions={{
+                      onEditProduct,
+                      onRemoveProduct: (id) =>
+                        setDeleteProduct(
+                          products.find((p) => p.id === id) || null
+                        ),
+                      onRowClick: handleRowClick,
+                    }}
+                  />
                 ))}
               </TableBody>
               <TableFooter
