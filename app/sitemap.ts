@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { url } from "./(frontend)/layout";
+import { url } from "./layout";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
