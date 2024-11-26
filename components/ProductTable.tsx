@@ -36,12 +36,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { PRODUCT_CONDITIONS } from "@/constants";
+import { columnConstraints, PRODUCT_CONDITIONS } from "@/constants";
+import { useColumnResize } from "@/hooks/useColumnResize";
 import { Product, ProductInput } from "@/hooks/useProducts";
 import { useProductTable } from "@/hooks/useProductTable";
 import { cn, formatCurrency } from "@/lib/utils";
-import { exportToCSV } from "@/utils/export";
 import { copyToClipboard } from "@/utils/copy";
+import { exportToCSV } from "@/utils/export";
 import {
   ArrowUpDown,
   Download,
@@ -51,7 +52,7 @@ import {
   SortDesc,
   Trash,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { DeleteAllConfirmationModal } from "./DeleteAllConfirmationModal";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
@@ -64,22 +65,7 @@ import { PriceFilter } from "./PriceFilter";
 import { ProductDetail } from "./ProductDetail";
 import { ProductRow } from "./ProductRow";
 
-// Define interface for column constraints
-interface ColumnConstraints {
-  [key: string]: { minWidth: number; maxWidth: number };
-}
-
-// Define min and max width constraints for each column
-const columnConstraints: ColumnConstraints = {
-  brand: { minWidth: 100, maxWidth: 300 },
-  name: { minWidth: 150, maxWidth: 400 },
-  price: { minWidth: 80, maxWidth: 150 },
-  quantity: { minWidth: 80, maxWidth: 150 },
-  condition: { minWidth: 100, maxWidth: 250 },
-  category: { minWidth: 100, maxWidth: 250 },
-  cost: { minWidth: 80, maxWidth: 150 },
-  profit: { minWidth: 80, maxWidth: 150 },
-};
+// Move this to a constants file or keep it here if it's specific to the ProductTable
 
 interface ProductTableProps {
   products: Product[];
@@ -91,79 +77,6 @@ interface ProductTableProps {
 
 type PriceOperator = ">" | ">=" | "<" | "<=" | "=";
 type PriceFilter = { operator: PriceOperator; value: number } | null;
-
-const useColumnResize = (initialWidths: Record<string, number>) => {
-  const [isResizing, setIsResizing] = useState(false);
-  const widths = useRef(initialWidths);
-  const resizingColumn = useRef<string | null>(null);
-  const startX = useRef<number>(0);
-  const startWidth = useRef<number>(0);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-
-  const handleMouseDown = useCallback(
-    (column: string, width: number, e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      setIsResizing(true);
-      resizingColumn.current = column;
-      startX.current = e.clientX;
-      startWidth.current = width;
-    },
-    []
-  );
-
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
-      if (!isResizing || !resizingColumn.current || !containerRef.current)
-        return;
-
-      const delta = e.clientX - startX.current;
-      const column = resizingColumn.current;
-      const startWidthValue = startWidth.current;
-      const { minWidth, maxWidth } = columnConstraints[column];
-      const newWidth = Math.max(
-        minWidth,
-        Math.min(startWidthValue + delta, maxWidth)
-      );
-
-      requestAnimationFrame(() => {
-        document.documentElement.style.setProperty(
-          `--column-width-${column}`,
-          `${newWidth}px`
-        );
-      });
-    },
-    [isResizing]
-  );
-
-  const handleMouseUp = useCallback(() => {
-    if (!isResizing || !resizingColumn.current) return;
-
-    const finalWidth = parseInt(
-      getComputedStyle(document.documentElement)
-        .getPropertyValue(`--column-width-${resizingColumn.current}`)
-        .slice(0, -2)
-    );
-
-    widths.current = {
-      ...widths.current,
-      [resizingColumn.current]: finalWidth,
-    };
-
-    setIsResizing(false);
-    resizingColumn.current = null;
-  }, [isResizing]);
-
-  return {
-    containerRef,
-    isResizing,
-    widths: widths.current,
-    handleMouseDown,
-    handleMouseMove,
-    handleMouseUp,
-  };
-};
 
 export function ProductTable({
   products,
@@ -381,7 +294,11 @@ export function ProductTable({
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
-  } = useColumnResize(columnWidthsInit);
+    resetColumnWidths,
+  } = useColumnResize({
+    initialWidths: columnWidthsInit,
+    columnConstraints,
+  });
 
   // Add event listeners
   useEffect(() => {
@@ -397,17 +314,6 @@ export function ProductTable({
 
   // Add CSS variables for initial column widths with constraints
   useEffect(() => {
-    Object.entries(columnWidthsInit).forEach(([column, width]) => {
-      const { minWidth, maxWidth } = columnConstraints[column];
-      const initialWidth = Math.max(minWidth, Math.min(width, maxWidth));
-      document.documentElement.style.setProperty(
-        `--column-width-${column}`,
-        `${initialWidth}px`
-      );
-    });
-  }, [columnWidthsInit]);
-
-  const resetColumnWidths = useCallback(() => {
     Object.entries(columnWidthsInit).forEach(([column, width]) => {
       const { minWidth, maxWidth } = columnConstraints[column];
       const initialWidth = Math.max(minWidth, Math.min(width, maxWidth));
