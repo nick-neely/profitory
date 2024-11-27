@@ -42,10 +42,25 @@ export default function Home() {
         <h2 className="text-lg font-medium px-4">Inventory</h2>
         <Separator />
         <Tabs defaultValue="table">
-          <TabsList>
-            <TabsTrigger value="table">Table</TabsTrigger>
-            <TabsTrigger value="stats">Statistics</TabsTrigger>
-            <TabsTrigger value="charts">Charts</TabsTrigger>
+          <TabsList className="md:w-auto w-full">
+            <TabsTrigger
+              value="table"
+              className="md:px-4 md:py-2 flex-1 md:flex-none py-4 text-center"
+            >
+              Table
+            </TabsTrigger>
+            <TabsTrigger
+              value="stats"
+              className="md:px-4 md:py-2 flex-1 md:flex-none py-4 text-center"
+            >
+              Statistics
+            </TabsTrigger>
+            <TabsTrigger
+              value="charts"
+              className="md:px-4 md:py-2 flex-1 md:flex-none py-4 text-center"
+            >
+              Charts
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="table">
             <div className="p-4 overflow-x-auto">
