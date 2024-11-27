@@ -12,7 +12,9 @@ import { cn, formatCurrency } from "@/lib/utils";
 import { ColumnConfig, RowActions } from "@/types/product-table";
 import { copyToClipboard } from "@/utils/copy";
 import { exportToCSV } from "@/utils/export";
+import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import { EditProductFormModal } from "./EditProductFormModal";
 
 interface ProductRowProps {
@@ -76,14 +78,46 @@ export function ProductRow({
               <EditProductFormModal
                 product={product}
                 onEditProduct={actions.onEditProduct}
+                trigger={
+                  <Button variant="outline" size="icon" className="md:hidden">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                }
               />
-              <Button
-                variant="outline"
-                onClick={() => actions.onRemoveProduct(product.id)}
-                className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30"
-              >
-                Remove
-              </Button>
+              <EditProductFormModal
+                product={product}
+                onEditProduct={actions.onEditProduct}
+                trigger={
+                  <Button variant="outline" className="hidden md:inline-flex">
+                    Edit
+                  </Button>
+                }
+              />
+              <DeleteConfirmationModal
+                productName={product.name}
+                onConfirm={() => actions.onRemoveProduct(product.id)}
+                trigger={
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="md:hidden text-red-600 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                }
+              />
+              <DeleteConfirmationModal
+                productName={product.name}
+                onConfirm={() => actions.onRemoveProduct(product.id)}
+                trigger={
+                  <Button
+                    variant="outline"
+                    className="hidden md:inline-flex text-red-600 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30"
+                  >
+                    Remove
+                  </Button>
+                }
+              />
             </div>
           </TableCell>
         </TableRow>

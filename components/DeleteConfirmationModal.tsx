@@ -6,27 +6,29 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
+import { useState } from "react";
 import { toast } from "sonner";
 
 interface DeleteConfirmationModalProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
   productName: string;
+  trigger?: React.ReactNode;
 }
 
 export function DeleteConfirmationModal({
-  isOpen,
-  onOpenChange,
   onConfirm,
   productName,
+  trigger,
 }: DeleteConfirmationModalProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
   const handleConfirm = () => {
     try {
       onConfirm();
+      setIsOpen(false); // Close the modal first
       toast.success(`Successfully deleted "${productName}"`);
-      onOpenChange(false);
     } catch (err: unknown) {
       const error = err as Error;
       toast.error(`Failed to delete "${productName}": ${error.message}`);
@@ -34,7 +36,17 @@ export function DeleteConfirmationModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        {trigger || (
+          <Button
+            variant="outline"
+            className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30"
+          >
+            Remove
+          </Button>
+        )}
+      </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Confirm Deletion</DialogTitle>
@@ -44,7 +56,7 @@ export function DeleteConfirmationModal({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => setIsOpen(false)}>
             Cancel
           </Button>
           <Button variant="destructive" onClick={handleConfirm}>

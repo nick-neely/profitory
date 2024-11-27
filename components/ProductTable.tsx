@@ -590,15 +590,13 @@ export function ProductTable({
           onConfirm={onRemoveAllProducts}
         />
         <DeleteConfirmationModal
-          isOpen={deleteProduct !== null}
-          onOpenChange={(open) => !open && setDeleteProduct(null)}
+          productName={deleteProduct?.name ?? ""}
           onConfirm={() => {
             if (deleteProduct) {
               onRemoveProduct(deleteProduct.id);
               setDeleteProduct(null);
             }
           }}
-          productName={deleteProduct?.name ?? ""}
         />
         <ProductDetailModal
           product={selectedProduct}

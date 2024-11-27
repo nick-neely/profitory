@@ -24,11 +24,13 @@ import { toast } from "sonner";
 interface EditProductFormModalProps {
   product: Product;
   onEditProduct: (id: string, product: ProductInput) => void;
+  trigger?: React.ReactNode;
 }
 
 export function EditProductFormModal({
   product,
   onEditProduct,
+  trigger, 
 }: EditProductFormModalProps) {
   const [editedProduct, setEditedProduct] =
     useState<Omit<Product, "id">>(product);
@@ -49,7 +51,7 @@ export function EditProductFormModal({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Edit</Button>
+        {trigger || <Button variant="outline">Edit</Button>}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
