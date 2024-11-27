@@ -6,7 +6,10 @@ import { ColumnConfig, RowActions } from "@/types/product-table";
 
 interface ProductTableBodyProps {
   paginatedProducts: Product[];
-  columnConfig: ColumnConfig;
+  columnConfig: ColumnConfig & {
+    getPinnedPosition: (column: keyof Product) => "left" | "right" | null;
+    getCumulativePinnedWidth: (column: keyof Product, position: "left" | "right") => number;
+  };
   actions: RowActions;
 }
 

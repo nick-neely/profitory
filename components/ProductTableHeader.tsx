@@ -32,6 +32,11 @@ interface ProductTableHeaderProps {
   stickyFooter: boolean;
   setStickyFooter: (value: boolean) => void;
   setShowFilterInputs: (value: boolean) => void;
+  getPinnedPosition?: (column: keyof Product) => "left" | "right" | null;
+  getCumulativePinnedWidth?: (
+    column: keyof Product,
+    position: "left" | "right"
+  ) => number;
 }
 
 export function ProductTableHeader({
@@ -42,45 +47,103 @@ export function ProductTableHeader({
   renderFilterInput,
   pinnedColumns,
   stickyHeader,
+  getPinnedPosition,
+  getCumulativePinnedWidth,
 }: ProductTableHeaderProps) {
   return (
     <TableHeader
       className={cn(
-        stickyHeader && "sticky top-0 z-10 bg-background",
+        "relative",
+        stickyHeader && "sticky top-0 z-20 bg-background",
         "[&_tr]:bg-background",
         stickyHeader &&
           "[&_tr:first-child]:border-b-2 [&_tr:first-child]:border-border"
       )}
     >
       <TableRow>
-        {sortedColumns.map((column) => (
-          <TableHead
-            key={column}
-            style={{
-              width: `var(--column-width-${column})`,
-              position: "relative",
-            }}
-            className={cn(
-              "transition-none",
-              pinnedColumns.left.includes(column) &&
-                "sticky left-0 bg-background",
-              pinnedColumns.right.includes(column) &&
-                "sticky right-0 bg-background"
-            )}
-          >
-            {renderColumnHeader(column)}
-          </TableHead>
-        ))}
-        <TableHead className="sticky right-0 bg-background">Action</TableHead>
+        {sortedColumns.map((column) => {
+          const pinnedPosition = getPinnedPosition?.(column);
+          const isPinned = pinnedPosition !== null;
+          const offset = isPinned
+            ? getCumulativePinnedWidth?.(column, pinnedPosition!) ?? 0
+            : 0;
+
+          return (
+            <TableHead
+              key={column}
+              style={{
+                width: `var(--column-width-${column})`,
+                position: "relative",
+                ...(isPinned && {
+                  position: "sticky",
+                  [pinnedPosition === "left" ? "left" : "right"]: `${offset}px`,
+                  zIndex: 30, // Higher z-index for pinned headers
+                }),
+              }}
+              className={cn(
+                "transition-none",
+                pinnedColumns.left.includes(column) &&
+                  "sticky left-0 bg-background border-r",
+                pinnedColumns.right.includes(column) &&
+                  "sticky right-0 bg-background border-l",
+                isPinned && "shadow-sm" // Optional: add subtle shadow to pinned columns
+              )}
+            >
+              {renderColumnHeader(column)}
+            </TableHead>
+          );
+        })}
+        <TableHead
+          className="sticky right-0 bg-background"
+          style={{
+            position: "sticky",
+            right: 0,
+            zIndex: 30, // Match the z-index of other pinned headers
+          }}
+        >
+          Action
+        </TableHead>
       </TableRow>
       {showFilterInputs && (
         <TableRow>
-          {columns.map((column) => (
-            <TableHead key={`filter-${column}`}>
-              <div data-filter={column}>{renderFilterInput(column)}</div>
-            </TableHead>
-          ))}
-          <TableHead />
+          {columns.map((column) => {
+            const pinnedPosition = getPinnedPosition?.(column);
+            const isPinned = pinnedPosition !== null;
+            const offset = isPinned
+              ? getCumulativePinnedWidth?.(column, pinnedPosition!) ?? 0
+              : 0;
+
+            return (
+              <TableHead
+                key={`filter-${column}`}
+                style={{
+                  ...(isPinned && {
+                    position: "sticky",
+                    [pinnedPosition === "left"
+                      ? "left"
+                      : "right"]: `${offset}px`,
+                    zIndex: 30,
+                  }),
+                }}
+                className={cn(
+                  pinnedColumns.left.includes(column) &&
+                    "sticky left-0 bg-background border-r",
+                  pinnedColumns.right.includes(column) &&
+                    "sticky right-0 bg-background border-l"
+                )}
+              >
+                <div data-filter={column}>{renderFilterInput(column)}</div>
+              </TableHead>
+            );
+          })}
+          <TableHead
+            className="sticky right-0 bg-background"
+            style={{
+              position: "sticky",
+              right: 0,
+              zIndex: 30,
+            }}
+          />
         </TableRow>
       )}
     </TableHeader>

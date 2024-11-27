@@ -19,7 +19,10 @@ import { EditProductFormModal } from "./EditProductFormModal";
 
 interface ProductRowProps {
   product: Product;
-  columnConfig: ColumnConfig;
+  columnConfig: ColumnConfig & {
+    getPinnedPosition: (column: keyof Product) => "left" | "right" | null;
+    getCumulativePinnedWidth: (column: keyof Product, position: "left" | "right") => number;
+  };
   actions: RowActions;
 }
 
@@ -59,11 +62,21 @@ export function ProductRow({
             <TableCell
               key={`${product.id}-${column}`}
               className={cn(
+                "transition-colors",
                 columnConfig.pinnedColumns.left.includes(column) &&
-                  "sticky left-0 bg-background",
+                  "sticky left-0 bg-background border-r",
                 columnConfig.pinnedColumns.right.includes(column) &&
-                  "sticky right-0 bg-background"
+                  "sticky right-0 bg-background border-l"
               )}
+              style={{
+                [columnConfig.pinnedColumns.left.includes(column) ? "left" : "right"]:
+                  columnConfig.getPinnedPosition(column) !== null
+                    ? `${columnConfig.getCumulativePinnedWidth(
+                        column,
+                        columnConfig.getPinnedPosition(column)!
+                      )}px`
+                    : undefined,
+              }}
             >
               {column === "price" || column === "cost" || column === "profit"
                 ? formatCurrency(product[column])

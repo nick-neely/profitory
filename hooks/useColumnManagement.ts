@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useCallback } from "react";
 import type { Product } from "./useProducts";
 
@@ -50,11 +49,16 @@ export function useColumnManagement() {
     (column: keyof Product, position: "left" | "right") => {
       setPinnedColumns((prev) => {
         const otherPosition = position === "left" ? "right" : "left";
-        return {
+        const newPinned = {
           ...prev,
-          [position]: [...prev[position], column],
           [otherPosition]: prev[otherPosition].filter((col) => col !== column),
         };
+
+        if (!prev[position].includes(column)) {
+          newPinned[position] = [...prev[position], column];
+        }
+
+        return newPinned;
       });
     },
     []
@@ -78,6 +82,25 @@ export function useColumnManagement() {
     ];
   }, [columns, pinnedColumns]);
 
+  const isPinned = useCallback(
+    (column: keyof Product) => {
+      return (
+        pinnedColumns.left.includes(column) ||
+        pinnedColumns.right.includes(column)
+      );
+    },
+    [pinnedColumns]
+  );
+
+  const getPinnedPosition = useCallback(
+    (column: keyof Product): "left" | "right" | null => {
+      if (pinnedColumns.left.includes(column)) return "left";
+      if (pinnedColumns.right.includes(column)) return "right";
+      return null;
+    },
+    [pinnedColumns]
+  );
+
   return {
     columns,
     toggleColumn,
@@ -88,5 +111,7 @@ export function useColumnManagement() {
     unpinColumn,
     sortedColumns,
     defaultColumns,
+    isPinned,
+    getPinnedPosition,
   };
 }

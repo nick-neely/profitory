@@ -103,6 +103,7 @@ export function ProductTable({
     unpinColumn,
     sortedColumns,
     defaultColumns,
+    getPinnedPosition,
   } = useColumnManagement();
 
   const handleExportToCSV = () => {
@@ -271,12 +272,33 @@ export function ProductTable({
     });
   }, [columnWidthsInit]);
 
+  // Add helper function to calculate cumulative widths
+  const getCumulativePinnedWidth = useCallback(
+    (column: keyof Product, position: "left" | "right") => {
+      const pinnedCols =
+        position === "left" ? pinnedColumns.left : pinnedColumns.right;
+      const colIndex = pinnedCols.indexOf(column);
+      if (colIndex === -1) return 0;
+
+      return pinnedCols
+        .slice(0, colIndex)
+        .reduce(
+          (sum, col) =>
+            sum +
+            (widths[col as keyof typeof columnWidthsInit] ||
+              columnWidthsInit[col as keyof typeof columnWidthsInit] ||
+              0),
+          0
+        );
+    },
+    [pinnedColumns, widths, columnWidthsInit]
+  );
+
   const renderColumnHeader = useCallback(
     (column: keyof Product) => {
       const label = column.charAt(0).toUpperCase() + column.slice(1);
-      const isPinnedLeft = pinnedColumns.left.includes(column);
-      const isPinnedRight = pinnedColumns.right.includes(column);
-      const isPinned = isPinnedLeft || isPinnedRight;
+      const pinnedPosition = getPinnedPosition(column);
+      const isPinned = pinnedPosition !== null;
 
       return (
         <div className="relative flex items-center h-full">
@@ -287,8 +309,19 @@ export function ProductTable({
                 onClick={() => handleSort(column)}
                 className={cn(
                   "h-8 px-2 lg:px-3 w-full justify-start",
-                  isPinned && "bg-muted"
+                  isPinned && "bg-muted/50",
+                  pinnedPosition === "left" && "sticky left-0",
+                  pinnedPosition === "right" && "sticky right-0"
                 )}
+                style={{
+                  // Add left/right positioning based on cumulative widths of previous pinned columns
+                  [pinnedPosition === "left" ? "left" : "right"]: isPinned
+                    ? `${getCumulativePinnedWidth(
+                        column as keyof typeof columnWidthsInit,
+                        pinnedPosition
+                      )}px`
+                    : undefined,
+                }}
               >
                 {label}
                 {sortConfig.key === column ? (
@@ -418,7 +451,7 @@ export function ProductTable({
                   Column Pinning
                   {isPinned && (
                     <Badge variant="secondary" className="ml-2">
-                      {isPinnedLeft ? "Left" : "Right"}
+                      {pinnedPosition}
                     </Badge>
                   )}
                 </ContextMenuSubTrigger>
@@ -477,8 +510,6 @@ export function ProductTable({
       );
     },
     [
-      pinnedColumns.left,
-      pinnedColumns.right,
       sortConfig.key,
       sortConfig.direction,
       filters,
@@ -497,6 +528,8 @@ export function ProductTable({
       unpinColumn,
       handleMouseDown,
       widths,
+      getPinnedPosition,
+      getCumulativePinnedWidth,
     ]
   );
 
@@ -541,6 +574,8 @@ export function ProductTable({
                 stickyFooter={stickyFooter}
                 setStickyFooter={setStickyFooter}
                 setShowFilterInputs={setShowFilterInputs}
+                getPinnedPosition={getPinnedPosition}
+                getCumulativePinnedWidth={getCumulativePinnedWidth}
               />
 
               <ProductTableBody
@@ -549,6 +584,8 @@ export function ProductTable({
                   pinnedColumns,
                   visibleColumns: columns,
                   sortedColumns,
+                  getPinnedPosition,
+                  getCumulativePinnedWidth
                 }}
                 actions={{
                   onEditProduct,
