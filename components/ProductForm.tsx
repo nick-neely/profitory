@@ -356,9 +356,9 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
 
         <div
           className={cn(
-            "p-4 bg-white md:p-0 md:bg-transparent transition-all duration-300 ease-in-out",
+            "p-4 bg-background md:p-0 transition-all duration-300 ease-in-out",
             shouldFloat
-              ? "fixed bottom-0 left-0 right-0 border-t md:relative md:border-0 translate-y-0"
+              ? "fixed bottom-0 left-0 right-0 border-t border-border shadow-lg md:relative md:border-0 md:shadow-none translate-y-0"
               : "relative translate-y-4"
           )}
         >
