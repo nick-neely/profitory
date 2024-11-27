@@ -38,7 +38,7 @@ export default function Home() {
         </AccordionItem>
       </Accordion>
 
-      <div className="space-y-4">
+      <div className="space-y-4" data-inventory-section>
         <h2 className="text-lg font-medium px-4">Inventory</h2>
         <Separator />
         <Tabs defaultValue="table">
