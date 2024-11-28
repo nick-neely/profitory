@@ -10,23 +10,23 @@ import {
 import { toast } from "sonner";
 
 interface DeleteConfirmationModalProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
   productName: string;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function DeleteConfirmationModal({
-  isOpen,
-  onOpenChange,
   onConfirm,
   productName,
+  isOpen,
+  onOpenChange,
 }: DeleteConfirmationModalProps) {
   const handleConfirm = () => {
     try {
       onConfirm();
-      toast.success(`Successfully deleted "${productName}"`);
       onOpenChange(false);
+      toast.success(`Successfully deleted "${productName}"`);
     } catch (err: unknown) {
       const error = err as Error;
       toast.error(`Failed to delete "${productName}": ${error.message}`);

@@ -59,7 +59,6 @@ export function Dropzone({
               "bg-background/50",
               "border-2 border-dashed border-primary/50",
               "hover:border-primary/70",
-              "shadow-sm w-64",
               disabled && "opacity-50 cursor-not-allowed",
               dropzoneClassName
             )}

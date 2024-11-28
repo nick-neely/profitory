@@ -12,12 +12,15 @@ import { cn, formatCurrency } from "@/lib/utils";
 import { ColumnConfig, RowActions } from "@/types/product-table";
 import { copyToClipboard } from "@/utils/copy";
 import { exportToCSV } from "@/utils/export";
+import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { EditProductFormModal } from "./EditProductFormModal";
 
 interface ProductRowProps {
   product: Product;
-  columnConfig: ColumnConfig;
+  columnConfig: ColumnConfig & {
+    getPinnedPosition: (column: keyof Product) => "left" | "right" | null;
+    getCumulativePinnedWidth: (column: keyof Product, position: "left" | "right") => number;
+  };
   actions: RowActions;
 }
 
@@ -51,17 +54,27 @@ export function ProductRow({
       <ContextMenuTrigger asChild>
         <TableRow
           className="cursor-pointer hover:bg-muted/50"
-          onClick={() => actions.onRowClick(product)}
+          onClick={() => actions.onView(product)}
         >
           {columnConfig.sortedColumns.map((column) => (
             <TableCell
               key={`${product.id}-${column}`}
               className={cn(
+                "transition-colors",
                 columnConfig.pinnedColumns.left.includes(column) &&
-                  "sticky left-0 bg-background",
+                  "sticky left-0 bg-background border-r",
                 columnConfig.pinnedColumns.right.includes(column) &&
-                  "sticky right-0 bg-background"
+                  "sticky right-0 bg-background border-l"
               )}
+              style={{
+                [columnConfig.pinnedColumns.left.includes(column) ? "left" : "right"]:
+                  columnConfig.getPinnedPosition(column) !== null
+                    ? `${columnConfig.getCumulativePinnedWidth(
+                        column,
+                        columnConfig.getPinnedPosition(column)!
+                      )}px`
+                    : undefined,
+              }}
             >
               {column === "price" || column === "cost" || column === "profit"
                 ? formatCurrency(product[column])
@@ -73,14 +86,33 @@ export function ProductRow({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex space-x-2">
-              <EditProductFormModal
-                product={product}
-                onEditProduct={actions.onEditProduct}
-              />
               <Button
                 variant="outline"
-                onClick={() => actions.onRemoveProduct(product.id)}
-                className="text-red-600 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30"
+                size="icon"
+                className="md:hidden"
+                onClick={() => actions.onEdit(product)}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="hidden md:inline-flex"
+                onClick={() => actions.onEdit(product)}
+              >
+                Edit
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="md:hidden text-red-600 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30"
+                onClick={() => actions.onDelete(product)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="hidden md:inline-flex text-red-600 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30"
+                onClick={() => actions.onDelete(product)}
               >
                 Remove
               </Button>
@@ -89,7 +121,7 @@ export function ProductRow({
         </TableRow>
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem onClick={() => actions.onRowClick(product)}>
+        <ContextMenuItem onClick={() => actions.onView(product)}>
           View Details
         </ContextMenuItem>
         <ContextMenuSeparator />
@@ -102,7 +134,7 @@ export function ProductRow({
         <ContextMenuSeparator />
         <ContextMenuItem
           className="text-red-600"
-          onClick={() => actions.onRemoveProduct(product.id)}
+          onClick={() => actions.onDelete(product)}
         >
           Delete Row
         </ContextMenuItem>

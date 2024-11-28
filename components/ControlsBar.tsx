@@ -1,12 +1,19 @@
 import { Button } from "@/components/ui/button";
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { FilterValue } from "@/hooks/useProductTable";
-import { Download, Filter, Trash } from "lucide-react";
+import { Download, Filter, Menu, Trash } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 
 interface ControlsBarProps {
@@ -27,9 +34,75 @@ export function ControlsBar({
   setIsDeleteAllModalOpen,
   isExportDisabled,
 }: ControlsBarProps) {
+  const MobileControls = () => (
+    <div className="grid gap-4 py-4">
+      <Button
+        variant={showFilterInputs ? "secondary" : "outline"}
+        onClick={() => {
+          if (showFilterInputs) {
+            setFilters({});
+          }
+          setShowFilterInputs(!showFilterInputs);
+        }}
+        className="justify-start h-12"
+      >
+        <Filter className="h-5 w-5 mr-2" />
+        <span>{showFilterInputs ? "Hide Filters" : "Show Filters"}</span>
+      </Button>
+      <Button
+        variant="outline"
+        onClick={handleExportToCSV}
+        disabled={isExportDisabled}
+        className="justify-start h-12"
+      >
+        <Download
+          className={`h-5 w-5 mr-2 ${
+            isExportDisabled ? "text-muted-foreground" : ""
+          }`}
+        />
+        <span>Export to CSV</span>
+      </Button>
+      <Button
+        variant="outline"
+        onClick={() => setIsDeleteAllModalOpen(true)}
+        disabled={isExportDisabled}
+        className="justify-start h-12 hover:bg-red-500 hover:text-white"
+      >
+        <Trash
+          className={`h-5 w-5 mr-2 ${
+            isExportDisabled ? "text-muted-foreground" : ""
+          }`}
+        />
+        <span>Delete All Products</span>
+      </Button>
+    </div>
+  );
+
   return (
     <div className="flex justify-between items-center mb-4 bg-background">
-      <div className="flex space-x-2">
+      {/* Mobile Controls */}
+      <div className="w-full md:hidden">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full justify-start px-4 h-12"
+            >
+              <Menu className="h-5 w-5 mr-2" />
+              <span>Controls</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="bottom">
+            <SheetHeader>
+              <SheetTitle>Controls</SheetTitle>
+            </SheetHeader>
+            <MobileControls />
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* Desktop Controls */}
+      <div className="hidden md:flex space-x-2">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>

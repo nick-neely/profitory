@@ -1,10 +1,9 @@
-
-import { Product, ProductInput } from "@/hooks/useProducts";
+import { Product } from "@/hooks/useProducts";
 
 export interface RowActions {
-  onEditProduct: (id: string, product: ProductInput) => void;
-  onRemoveProduct: (id: string) => void;
-  onRowClick: (product: Product) => void;
+  onEdit: (product: Product) => void;
+  onDelete: (product: Product) => void;
+  onView: (product: Product) => void;
 }
 
 export interface ColumnConfig {

@@ -20,6 +20,7 @@ import { useColumnResize } from "@/hooks/useColumnResize";
 import { Product, ProductInput } from "@/hooks/useProducts";
 import { NumberFilter, useProductTable } from "@/hooks/useProductTable";
 import { cn } from "@/lib/utils";
+import { RowActions } from "@/types/product-table";
 import { copyToClipboard } from "@/utils/copy";
 import { exportToCSV } from "@/utils/export";
 import {
@@ -37,6 +38,7 @@ import { ConditionFilterInput } from "./ConditionFilterInput";
 import { ControlsBar } from "./ControlsBar";
 import { DeleteAllConfirmationModal } from "./DeleteAllConfirmationModal";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import { EditProductFormModal } from "./EditProductFormModal";
 import { NumberFilterInput } from "./NumberFilterInput";
 import {
   NumberFilterPopover,
@@ -81,9 +83,6 @@ export function ProductTable({
 
   const [showFilterInputs, setShowFilterInputs] = useState(false);
   const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
   const [stickyHeader, setStickyHeader] = useState(true);
   const [stickyFooter, setStickyFooter] = useState(false);
   const [visibleTotals, setVisibleTotals] = useState<(keyof Product)[]>([
@@ -92,6 +91,17 @@ export function ProductTable({
     "cost",
     "profit",
   ]);
+
+  // Modal states
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [productToView, setProductToView] = useState<Product | null>(null);
+
+  const rowActions: RowActions = {
+    onEdit: (product) => setProductToEdit(product),
+    onDelete: (product) => setProductToDelete(product),
+    onView: (product) => setProductToView(product),
+  };
 
   const {
     columns,
@@ -103,6 +113,7 @@ export function ProductTable({
     unpinColumn,
     sortedColumns,
     defaultColumns,
+    getPinnedPosition,
   } = useColumnManagement();
 
   const handleExportToCSV = () => {
@@ -216,10 +227,6 @@ export function ProductTable({
     [filters, handleFilterChange, setFilters]
   );
 
-  const handleRowClick = useCallback((product: Product) => {
-    setSelectedProduct(product);
-    setIsDetailOpen(true);
-  }, []);
 
   const columnWidthsInit = useMemo(
     () => ({
@@ -271,12 +278,33 @@ export function ProductTable({
     });
   }, [columnWidthsInit]);
 
+  // Add helper function to calculate cumulative widths
+  const getCumulativePinnedWidth = useCallback(
+    (column: keyof Product, position: "left" | "right") => {
+      const pinnedCols =
+        position === "left" ? pinnedColumns.left : pinnedColumns.right;
+      const colIndex = pinnedCols.indexOf(column);
+      if (colIndex === -1) return 0;
+
+      return pinnedCols
+        .slice(0, colIndex)
+        .reduce(
+          (sum, col) =>
+            sum +
+            (widths[col as keyof typeof columnWidthsInit] ||
+              columnWidthsInit[col as keyof typeof columnWidthsInit] ||
+              0),
+          0
+        );
+    },
+    [pinnedColumns, widths, columnWidthsInit]
+  );
+
   const renderColumnHeader = useCallback(
     (column: keyof Product) => {
       const label = column.charAt(0).toUpperCase() + column.slice(1);
-      const isPinnedLeft = pinnedColumns.left.includes(column);
-      const isPinnedRight = pinnedColumns.right.includes(column);
-      const isPinned = isPinnedLeft || isPinnedRight;
+      const pinnedPosition = getPinnedPosition(column);
+      const isPinned = pinnedPosition !== null;
 
       return (
         <div className="relative flex items-center h-full">
@@ -287,8 +315,19 @@ export function ProductTable({
                 onClick={() => handleSort(column)}
                 className={cn(
                   "h-8 px-2 lg:px-3 w-full justify-start",
-                  isPinned && "bg-muted"
+                  isPinned && "bg-muted/50",
+                  pinnedPosition === "left" && "sticky left-0",
+                  pinnedPosition === "right" && "sticky right-0"
                 )}
+                style={{
+                  // Add left/right positioning based on cumulative widths of previous pinned columns
+                  [pinnedPosition === "left" ? "left" : "right"]: isPinned
+                    ? `${getCumulativePinnedWidth(
+                        column as keyof typeof columnWidthsInit,
+                        pinnedPosition
+                      )}px`
+                    : undefined,
+                }}
               >
                 {label}
                 {sortConfig.key === column ? (
@@ -418,7 +457,7 @@ export function ProductTable({
                   Column Pinning
                   {isPinned && (
                     <Badge variant="secondary" className="ml-2">
-                      {isPinnedLeft ? "Left" : "Right"}
+                      {pinnedPosition}
                     </Badge>
                   )}
                 </ContextMenuSubTrigger>
@@ -477,8 +516,6 @@ export function ProductTable({
       );
     },
     [
-      pinnedColumns.left,
-      pinnedColumns.right,
       sortConfig.key,
       sortConfig.direction,
       filters,
@@ -497,6 +534,8 @@ export function ProductTable({
       unpinColumn,
       handleMouseDown,
       widths,
+      getPinnedPosition,
+      getCumulativePinnedWidth,
     ]
   );
 
@@ -541,6 +580,8 @@ export function ProductTable({
                 stickyFooter={stickyFooter}
                 setStickyFooter={setStickyFooter}
                 setShowFilterInputs={setShowFilterInputs}
+                getPinnedPosition={getPinnedPosition}
+                getCumulativePinnedWidth={getCumulativePinnedWidth}
               />
 
               <ProductTableBody
@@ -549,13 +590,10 @@ export function ProductTable({
                   pinnedColumns,
                   visibleColumns: columns,
                   sortedColumns,
+                  getPinnedPosition,
+                  getCumulativePinnedWidth,
                 }}
-                actions={{
-                  onEditProduct,
-                  onRemoveProduct: (id) =>
-                    setDeleteProduct(products.find((p) => p.id === id) || null),
-                  onRowClick: handleRowClick,
-                }}
+                actions={rowActions}
               />
 
               <ProductTableFooter
@@ -590,20 +628,29 @@ export function ProductTable({
           onConfirm={onRemoveAllProducts}
         />
         <DeleteConfirmationModal
-          isOpen={deleteProduct !== null}
-          onOpenChange={(open) => !open && setDeleteProduct(null)}
+          productName={productToDelete?.name ?? ""}
+          isOpen={!!productToDelete}
+          onOpenChange={(open) => !open && setProductToDelete(null)}
           onConfirm={() => {
-            if (deleteProduct) {
-              onRemoveProduct(deleteProduct.id);
-              setDeleteProduct(null);
+            if (productToDelete) {
+              onRemoveProduct(productToDelete.id);
+              setProductToDelete(null);
             }
           }}
-          productName={deleteProduct?.name ?? ""}
+        />
+        <EditProductFormModal
+          product={productToEdit}
+          isOpen={!!productToEdit}
+          onOpenChange={(open) => !open && setProductToEdit(null)}
+          onEditProduct={(id, product) => {
+            onEditProduct(id, product);
+            setProductToEdit(null);
+          }}
         />
         <ProductDetailModal
-          product={selectedProduct}
-          isOpen={isDetailOpen}
-          onOpenChange={setIsDetailOpen}
+          product={productToView}
+          isOpen={!!productToView}
+          onOpenChange={(open) => !open && setProductToView(null)}
         />
       </div>
     </div>

@@ -1,0 +1,185 @@
+Brand,Name,Cost,Price,Quantity,Condition,Category
+Apple,iPhone 13 Pro,799,999,15,New,Electronics
+Samsung,Galaxy S21 Ultra,750,950,10,New,Electronics
+Sony,WH-1000XM4 Headphones,200,349,20,Refurbished,Electronics
+Dell,XPS 13 Laptop,850,1200,5,Used - Like New,Computers
+HP,Envy 6055 Printer,60,90,25,Used - Good,Computers
+Nike,Air Zoom Pegasus 38,90,120,30,New,Fashion
+Adidas,Ultraboost 21,100,150,18,New,Fashion
+The North Face,Venture 2 Jacket,70,99,12,Used - Acceptable,Fashion
+Gucci,Leather Belt,250,350,7,Used - Good,Fashion
+Rolex,Submariner Watch,6000,7500,2,Used - Like New,Jewelry
+Lego,Star Wars Millennium Falcon,120,160,15,New,Toys & Games
+Hasbro,Monopoly Classic Edition,10,20,40,New,Toys & Games
+Mattel,Barbie Dreamhouse,150,200,8,Refurbished,Toys & Games
+Canon,EOS R5 Camera,2800,3500,3,New,Cameras
+Nikon,D850 DSLR Camera,2000,2600,4,Used - Like New,Cameras
+KitchenAid,Artisan Stand Mixer,250,350,10,Used - Good,Home & Garden
+Dyson,V11 Torque Drive Vacuum,400,600,6,Refurbished,Home & Garden
+DeWalt,20V Max Drill Combo Kit,150,200,20,New,Tools
+Trek,Domane SL 6 Bike,2500,3200,2,Used - Good,Sports & Outdoors
+Titleist,Pro V1 Golf Balls (Dozen),35,50,50,New,Sports & Outdoors
+Nintendo,Switch Console,250,300,15,New,Video Games
+Microsoft,Xbox Series X,400,500,12,New,Video Games
+Sony,PlayStation 5,400,500,10,Used - Like New,Video Games
+HarperCollins,"The Alchemist by Paulo Coelho",5,15,30,New,Books
+Penguin,"1984 by George Orwell",4,10,50,Used - Acceptable,Books
+Johnson & Johnson,Baby Shampoo 500ml,3,7,100,New,Health & Beauty
+Estee Lauder,Advanced Night Repair Serum,60,90,25,New,Health & Beauty
+Ford,F-150 Tailgate,400,600,5,Used - Good,Automotive
+Goodyear,Assurance All-Season Tires (Set of 4),300,500,8,New,Automotive
+Fisher-Price,Deluxe Kick & Play Piano Gym,30,50,20,New,Baby
+Chicco,KeyFit 30 Infant Car Seat,100,150,10,Used - Like New,Baby
+Columbia,Men's Glennaker Rain Jacket,35,60,18,New,Clothing
+Levi's,501 Original Jeans,25,50,40,Used - Good,Clothing
+Apple,MacBook Pro 16-inch,1800,2400,4,Refurbished,Computers
+Asus,ROG Strix Gaming Laptop,1200,1500,6,New,Computers
+Bose,QuietComfort Earbuds,180,280,15,Used - Like New,Electronics
+Panasonic,Lumix G7 Mirrorless Camera,400,600,7,Used - Good,Cameras
+Under Armour,Men's HeatGear T-Shirt,15,25,50,New,Fashion
+Samsung,QLED 4K Smart TV 65",900,1200,5,New,Electronics
+LG,Smart Refrigerator 28 cu ft,1500,2000,3,Refurbished,Home Appliances
+Whirlpool,Front Load Washer,500,800,4,Used - Good,Home Appliances
+IKEA,Billy Bookcase,30,60,20,New,Home & Garden
+Seiko,Men's Automatic Watch,100,200,10,Used - Like New,Jewelry
+Ray-Ban,Aviator Sunglasses,70,150,25,New,Fashion
+Gibson,Les Paul Standard Guitar,1500,2000,2,Used - Acceptable,Musical Instruments
+Yamaha,Digital Piano P-125,400,600,5,Refurbished,Musical Instruments
+Bosch,500 Series Dishwasher,600,900,3,Used - Good,Home Appliances
+Dell,UltraSharp 27" Monitor,250,400,10,New,Computers
+Logitech,MX Master 3 Mouse,60,100,30,New,Computers
+HP,Omen Gaming Desktop,900,1200,5,Refurbished,Computers
+Fitbit,Charge 4 Fitness Tracker,70,130,20,New,Health & Beauty
+Garmin,Forerunner 245 GPS Watch,150,250,12,Used - Like New,Sports & Outdoors
+GoPro,HERO9 Black Camera,300,400,8,Used - Good,Cameras
+DJI,Mavic Air 2 Drone,600,800,5,Refurbished,Electronics
+Asics,Gel-Kayano 27 Running Shoes,90,160,22,New,Fashion
+Converse,Chuck Taylor All Star,25,50,35,Used - Good,Fashion
+Ecco,Men's Dress Shoes,80,120,15,Used - Like New,Fashion
+Sony,Xperia 5 II Smartphone,600,800,10,New,Electronics
+Lenovo,ThinkPad X1 Carbon,1000,1500,5,Refurbished,Computers
+Asus,ZenBook 14 Laptop,700,1000,7,Used - Like New,Computers
+Microsoft,Surface Pro 7 Tablet,600,900,9,Used - Good,Computers
+Kawasaki,Electric Pressure Washer,100,150,12,New,Home & Garden
+Makita,Circular Saw 7-1/4",80,120,15,Used - Good,Tools
+Shimano,Ultegra R8000 Groupset,600,800,3,New,Sports & Outdoors
+Canon,EF 50mm f/1.8 STM Lens,80,125,20,New,Cameras
+Nikon,AF-S DX NIKKOR 35mm f/1.8G Lens,120,200,15,Used - Like New,Cameras
+Fujifilm,X-T30 Mirrorless Camera,700,900,6,Used - Good,Cameras
+Sigma,Art 24-70mm f/2.8 Lens,900,1100,4,Refurbished,Cameras
+PetSafe,Automatic Dog Feeder,60,100,18,New,Pet Supplies
+Purina,Pro Plan Dog Food 30lb,25,50,40,New,Pet Supplies
+Canon,PIXMA TR8520 Printer,100,150,10,Used - Good,Computers
+Epson,WorkForce ES-500W Scanner,200,300,7,New,Computers
+Brother,HL-L2395DW Laser Printer,100,180,12,Refurbished,Computers
+Alienware,Aurora R11 Gaming Desktop,1200,1600,4,Used - Like New,Computers
+Herman Miller,Aeron Office Chair,600,900,5,Used - Acceptable,Office Supplies
+Staples,Desk Organizer Set,10,20,30,New,Office Supplies
+Crate & Barrel,Marin Dinnerware Set,50,80,15,Used - Good,Home & Garden
+Le Creuset,Cast Iron Dutch Oven,200,300,8,Used - Like New,Home & Garden
+All-Clad,Stainless Steel Cookware Set,400,600,6,Refurbished,Home & Garden
+Sony,X950H 75" 4K TV,1500,2000,2,New,Electronics
+Hisense,H8G 55" Quantum Series TV,350,500,10,New,Electronics
+Samsung,Galaxy Tab S7 Tablet,500,650,9,Used - Good,Electronics
+Apple,iPad Pro 11-inch,600,800,7,Refurbished,Electronics
+Anker,PowerCore Portable Charger,20,40,50,New,Electronics
+Belkin,Wireless Charging Stand,15,30,35,New,Electronics
+TCL,6-Series 65" 4K TV,600,800,5,Used - Like New,Electronics
+Vizio,M-Series Soundbar,150,250,12,Used - Good,Electronics
+Klipsch,Reference Theater Pack,200,400,6,New,Electronics
+Yamaha,ATS-2090 Soundbar,100,200,15,Refurbished,Electronics
+Google,Pixel 5 Smartphone,500,700,10,New,Electronics
+OnePlus,8 Pro Smartphone,600,800,8,Used - Like New,Electronics
+Black+Decker,12-Cup Coffee Maker,20,40,25,New,Home Appliances
+Instant Pot,Duo 7-in-1 Pressure Cooker,50,80,20,Used - Good,Home Appliances
+Hamilton Beach,2-Way Brewer Coffee Maker,35,60,18,Refurbished,Home Appliances
+Breville,Barista Express Espresso Machine,400,600,5,Used - Like New,Home Appliances
+Dyson,Pure Cool Air Purifier,250,400,7,Used - Good,Home Appliances
+Philips,Norelco Electric Shaver,50,80,20,New,Health & Beauty
+Braun,Series 7 Electric Razor,100,150,12,Used - Like New,Health & Beauty
+Oral-B,Genius X Electric Toothbrush,80,130,15,Refurbished,Health & Beauty
+Olay,Regenerist Micro-Sculpting Cream,15,30,30,New,Health & Beauty
+Neutrogena,Hydro Boost Gel-Cream,10,20,40,New,Health & Beauty
+Garnier,Micellar Cleansing Water,5,10,50,New,Health & Beauty
+Clorox,Disinfecting Wipes 75ct,3,7,100,New,Home & Garden
+3M,N95 Respirator Masks (Pack of 20),15,30,25,New,Health & Beauty
+Purell,Advanced Hand Sanitizer 1L,5,15,60,New,Health & Beauty
+Microsoft,Office Home & Student 2019,80,120,25,New,Software
+Adobe,Photoshop Elements 2021,60,100,15,New,Software
+Intuit,TurboTax Deluxe 2020,30,60,40,New,Software
+Norton,360 Deluxe Antivirus,25,50,50,New,Software
+Kaspersky,Internet Security 3 Devices,20,40,35,New,Software
+Roku,Streaming Stick+,25,50,30,New,Electronics
+Amazon,Fire TV Stick 4K,20,40,35,New,Electronics
+Apple,TV 4K 32GB,100,150,15,Used - Like New,Electronics
+Chromecast,with Google TV,30,50,28,New,Electronics
+Slingbox,Slingbox M2,100,150,10,Used - Good,Electronics
+Ring,Video Doorbell Pro,100,150,12,Used - Like New,Home Security
+Nest,Learning Thermostat 3rd Gen,150,250,9,Refurbished,Home Security
+August,Smart Lock Pro,100,180,14,New,Home Security
+Arlo,Pro 3 Security Camera System,300,500,5,Used - Good,Home Security
+SimpliSafe,8-Piece Wireless Home Security System,150,250,7,New,Home Security
+Tile,Pro (2020) Bluetooth Tracker,15,30,40,New,Electronics
+Anova,Culinary Sous Vide Precision Cooker,100,150,10,Used - Like New,Home Appliances
+Philips,Hue White & Color Ambiance Starter Kit,100,150,12,New,Home Automation
+Wemo,Mini Smart Plug,15,30,30,New,Home Automation
+Ecobee,SmartThermostat with Voice Control,150,250,8,Used - Good,Home Automation
+Logitech,Harmony Elite Remote Control,200,300,6,Refurbished,Home Automation
+Sony,Xperia Ear Duo Wireless Earbuds,150,250,10,Used - Acceptable,Electronics
+Jabra,Elite 75t Earbuds,100,180,15,New,Electronics
+Sennheiser,HD 450BT Headphones,100,150,12,Used - Like New,Electronics
+Shure,SM7B Vocal Microphone,300,400,5,New,Musical Instruments
+Blue,Yeti USB Microphone,80,130,20,New,Computers
+Focusrite,Scarlett 2i2 Audio Interface,100,150,10,Used - Good,Musical Instruments
+AKG,P220 Condenser Microphone,100,150,8,New,Musical Instruments
+Behringer,UM2 Audio Interface,25,50,25,New,Musical Instruments
+Samsung,EVO Select 128GB MicroSDXC,15,30,50,New,Computers
+SanDisk,Extreme Pro 256GB SDXC,50,100,20,New,Cameras
+Kingston,USB 3.0 64GB Flash Drive,5,15,80,New,Computers
+Western Digital,My Passport 2TB External HDD,50,80,25,New,Computers
+Seagate,Barracuda 4TB Internal HDD,80,120,18,New,Computers
+Crucial,MX500 1TB SSD,80,130,15,New,Computers
+Intel,Core i7-10700K Processor,250,350,10,New,Computers
+AMD,Ryzen 7 3700X Processor,200,300,12,Used - Like New,Computers
+ASRock,B550M Pro4 Motherboard,80,120,15,New,Computers
+Corsair,Vengeance LPX 16GB DDR4 RAM,60,100,20,New,Computers
+EVGA,GeForce RTX 3060 Graphics Card,300,500,5,New,Computers
+MSI,GeForce GTX 1660 Super,200,300,8,Used - Good,Computers
+Gigabyte,Aorus X570 Master Motherboard,250,350,6,New,Computers
+NZXT,H510 Mid-Tower Case,50,80,15,New,Computers
+Cooler Master,Hyper 212 CPU Cooler,20,40,25,New,Computers
+Thermaltake,Smart 600W Power Supply,30,60,18,New,Computers
+Logitech,G502 Hero Gaming Mouse,40,80,20,New,Computers
+Razer,BlackWidow Elite Keyboard,100,150,10,Used - Like New,Computers
+SteelSeries,Arctis 7 Gaming Headset,80,130,12,Used - Good,Computers
+HyperX,Cloud II Gaming Headset,50,100,15,New,Computers
+Asus,Rog Swift PG279Q Monitor,500,700,5,New,Computers
+Dell,Alienware 25 Gaming Monitor,300,500,7,Used - Good,Computers
+BenQ,Zowie XL2546K Monitor,400,600,6,New,Computers
+ViewSonic,XG2402 Gaming Monitor,150,250,12,New,Computers
+Samsung,Odyssey G7 Monitor,600,800,4,Used - Like New,Computers
+ASUS,TUF Gaming VG27AQ Monitor,300,500,9,Refurbished,Computers
+Canon,PIXMA Pro-100 Printer,300,500,5,Used - Good,Computers
+Epson,SureColor P800 Printer,800,1000,3,New,Computers
+HP,OfficeJet Pro 9025 Printer,150,250,10,New,Computers
+Brother,DS-940DW Mobile Scanner,150,200,8,Used - Like New,Computers
+Apple,AirPods Pro,180,250,20,New,Electronics
+Samsung,Galaxy Buds Pro,120,200,15,New,Electronics
+Google,Pixel Buds A-Series,80,130,18,Used - Good,Electronics
+JBL,Flip 5 Bluetooth Speaker,60,100,25,New,Electronics
+Ultimate Ears,MEGABOOM 3 Speaker,120,200,12,Used - Like New,Electronics
+Anker,Soundcore Liberty Air 2 Pro,80,130,20,New,Electronics
+Sony,SRS-XB43 Bluetooth Speaker,150,250,10,Used - Good,Electronics
+Bose,SoundLink Revolve+,180,280,14,Refurbished,Electronics
+Marshall,Kilburn II Portable Speaker,200,300,8,Used - Like New,Electronics
+Sonos,One SL Smart Speaker,120,180,15,New,Electronics
+HP,Envy 13 Laptop,700,1000,7,Used - Good,Computers
+Acer,Predator Helios 300,900,1200,5,New,Computers
+Razer,Blade 15 Gaming Laptop,1400,1800,3,Refurbished,Computers
+Gigabyte,Aero 15 OLED Laptop,1300,1700,4,Used - Like New,Computers
+MSI,GS66 Stealth Laptop,1200,1600,6,New,Computers
+Lenovo,IdeaPad 3 Laptop,400,600,10,New,Computers
+Dell,Inspiron 15 5000 Laptop,500,700,8,Used - Good,Computers
+Asus,VivoBook S15 Laptop,600,800,9,New,Computers
+HP,Pavilion x360 Laptop,500,700,7,Used - Like New,Computers
+Samsung,Galaxy Book Flex,900,1200,5,Refurbished,Computers

@@ -16,13 +16,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PRODUCT_CONDITIONS } from "@/constants";
+import { PRODUCT_CONDITIONS, type ProductCondition } from "@/constants";
 import { ProductInput } from "@/hooks/useProducts";
 import { productSchema, type ProductFormValues } from "@/lib/schemas/product";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { debounce } from "lodash";
 import { Loader2 } from "lucide-react";
 import Papa from "papaparse";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -41,7 +43,7 @@ interface CSVRow {
   Name: string;
   Price: string;
   Quantity: string;
-  Condition: string;
+  Condition: ProductCondition;
   Category: string;
   Cost: string;
 }
@@ -50,8 +52,53 @@ interface ProductFormProps {
   onAddProduct: (product: ProductInput | ProductInput[]) => void;
 }
 
+const validateCondition = (condition: string): ProductCondition => {
+  if (PRODUCT_CONDITIONS.includes(condition as ProductCondition)) {
+    return condition as ProductCondition;
+  }
+  // Default to "New" if invalid condition is provided
+  console.warn(`Invalid condition "${condition}" defaulting to "New"`);
+  return "New";
+};
+
 export function ProductForm({ onAddProduct }: ProductFormProps) {
   const [isImporting, setIsImporting] = useState(false);
+  const [shouldFloat, setShouldFloat] = useState(true);
+  const formRef = useRef<HTMLFormElement>(null);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    // Debounced setter to avoid rapid state changes
+    const debouncedSetFloat = debounce((isIntersecting: boolean) => {
+      // Only update if we've scrolled more than 30px since last change
+      const currentScrollY = window.scrollY;
+      if (Math.abs(currentScrollY - lastScrollY.current) > 30) {
+        setShouldFloat(!isIntersecting);
+        lastScrollY.current = currentScrollY;
+      }
+    }, 150); // 150ms debounce
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        debouncedSetFloat(entry.isIntersecting);
+      },
+      {
+        threshold: [0, 0.1, 0.2], // Multiple thresholds for smoother transition
+        rootMargin: "150px 0px 0px 0px", // Larger top margin to trigger earlier
+      }
+    );
+
+    const inventorySection = document.querySelector("[data-inventory-section]");
+    if (inventorySection) {
+      observer.observe(inventorySection);
+    }
+
+    return () => {
+      observer.disconnect();
+      debouncedSetFloat.cancel();
+    };
+  }, []);
+
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -118,7 +165,7 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
                   name: row.Name || "",
                   price: parseFloat(row.Price.replace(/[$,]/g, "")) || 0,
                   quantity: parseInt(row.Quantity) || 1,
-                  condition: row.Condition || "New",
+                  condition: validateCondition(row.Condition),
                   category: row.Category || "",
                   cost: parseFloat(row.Cost?.replace(/[$,]/g, "") || "0") || 0, // Add cost with fallback
                 })
@@ -174,18 +221,25 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
-        <div className="grid grid-cols-2 gap-4">
+      <form
+        ref={formRef}
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="relative space-y-8 py-4"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-4">
           <FormField
             control={form.control}
             name="brand"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Brand</FormLabel>
+                <FormLabel className="text-base">Brand</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input
+                    {...field}
+                    className="h-12 md:h-10 text-base active:scale-[0.98] transition-transform"
+                  />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-base" />
               </FormItem>
             )}
           />
@@ -195,11 +249,14 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Item Name</FormLabel>
+                <FormLabel className="text-base">Item Name</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input
+                    {...field}
+                    className="h-12 md:h-10 text-base active:scale-[0.98] transition-transform"
+                  />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-base" />
               </FormItem>
             )}
           />
@@ -209,11 +266,17 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
             name="cost"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Purchase Cost</FormLabel>
+                <FormLabel className="text-base">Purchase Cost</FormLabel>
                 <FormControl>
-                  <Input type="number" min="0" step="0.01" {...field} />
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    {...field}
+                    className="h-12 md:h-10 text-base active:scale-[0.98] transition-transform"
+                  />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-base" />
               </FormItem>
             )}
           />
@@ -223,11 +286,17 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
             name="price"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Selling Price</FormLabel>
+                <FormLabel className="text-base">Selling Price</FormLabel>
                 <FormControl>
-                  <Input type="number" min="0" step="0.01" {...field} />
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    {...field}
+                    className="h-12 md:h-10 text-base active:scale-[0.98] transition-transform"
+                  />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-base" />
               </FormItem>
             )}
           />
@@ -237,11 +306,16 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
             name="quantity"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Quantity</FormLabel>
+                <FormLabel className="text-base">Quantity</FormLabel>
                 <FormControl>
-                  <Input type="number" min="1" {...field} />
+                  <Input
+                    type="number"
+                    min="1"
+                    {...field}
+                    className="h-12 md:h-10 text-base active:scale-[0.98] transition-transform"
+                  />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-base" />
               </FormItem>
             )}
           />
@@ -251,10 +325,10 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
             name="condition"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Condition</FormLabel>
+                <FormLabel className="text-base">Condition</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-12 md:h-10 text-base active:scale-[0.98] transition-transform">
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>
@@ -266,7 +340,7 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
                     ))}
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <FormMessage className="text-base" />
               </FormItem>
             )}
           />
@@ -276,33 +350,53 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
             name="category"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Category</FormLabel>
+                <FormLabel className="text-base">Category</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input
+                    {...field}
+                    className="h-12 md:h-10 text-base active:scale-[0.98] transition-transform"
+                  />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-base" />
               </FormItem>
             )}
           />
         </div>
 
-        <div className="flex space-x-2">
-          <Button type="submit">Add Product</Button>
-          <Dropzone
-            onDrop={handleFileUpload}
-            accept={{ "text/csv": [".csv"] }}
-            disabled={isImporting}
-            buttonText="Import CSV"
-            buttonVariant="outline"
-            buttonContent={
-              isImporting ? (
-                <div className="flex items-center">
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  <span>Importing...</span>
-                </div>
-              ) : undefined
-            }
-          />
+        <div
+          className={cn(
+            "p-4 bg-background md:p-0 transition-all duration-300 ease-in-out",
+            shouldFloat
+              ? "fixed bottom-0 left-0 right-0 border-t border-border shadow-lg md:relative md:border-0 md:shadow-none translate-y-0"
+              : "relative translate-y-4"
+          )}
+        >
+          <div className="flex flex-col space-y-3 md:flex-row md:space-y-0 md:space-x-2 max-w-screen-xl mx-auto">
+            <Button
+              type="submit"
+              className="h-12 md:h-10 text-base active:scale-[0.98] transition-transform"
+            >
+              Add Product
+            </Button>
+            <Dropzone
+              onDrop={handleFileUpload}
+              accept={{ "text/csv": [".csv"] }}
+              disabled={isImporting}
+              buttonText="Import CSV"
+              buttonVariant="outline"
+              className="h-12 md:h-10 text-base active:scale-[0.98] transition-transform w-full md:w-auto"
+              buttonClassName="w-full md:w-auto"
+              dropzoneClassName="w-full md:w-64"
+              buttonContent={
+                isImporting ? (
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    <span>Importing...</span>
+                  </div>
+                ) : undefined
+              }
+            />
+          </div>
         </div>
       </form>
     </Form>
