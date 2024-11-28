@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ProductCondition } from "@/constants";
 
 export interface Product {
   id: string;
@@ -6,13 +7,13 @@ export interface Product {
   name: string;
   price: number;
   quantity: number;
-  condition: string;
+  condition: ProductCondition;
   category: string;
   cost: number;
   readonly profit: number;
 }
 
-// Add this new type for the form/editable fields
+// For editable fields
 export type ProductInput = Omit<Product, "id" | "profit">;
 
 const generateId = () => {
@@ -51,13 +52,15 @@ export function useProducts() {
         ? newProduct.map((product) => ({
             ...product,
             id: generateId(),
-            profit: product.price - product.cost, // Calculate profit
+            profit: product.price - product.cost,
+            condition: product.condition as ProductCondition,
           }))
         : [
             {
               ...newProduct,
               id: generateId(),
-              profit: newProduct.price - newProduct.cost, // Calculate profit
+              profit: newProduct.price - newProduct.cost,
+              condition: newProduct.condition as ProductCondition,
             },
           ]),
     ]);

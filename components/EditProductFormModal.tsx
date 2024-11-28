@@ -5,7 +5,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,43 +15,63 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PRODUCT_CONDITIONS } from "@/constants";
+import { PRODUCT_CONDITIONS, type ProductCondition } from "@/constants";
 import { Product, ProductInput } from "@/hooks/useProducts";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface EditProductFormModalProps {
-  product: Product;
+  product: Product | null;
   onEditProduct: (id: string, product: ProductInput) => void;
-  trigger?: React.ReactNode;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function EditProductFormModal({
   product,
   onEditProduct,
-  trigger,
+  isOpen,
+  onOpenChange,
 }: EditProductFormModalProps) {
+  const initialProduct = product || {
+    brand: "",
+    name: "",
+    price: 0,
+    quantity: 0,
+    condition: PRODUCT_CONDITIONS[0],
+    category: "",
+    cost: 0,
+    profit: 0,
+  };
+
   const [editedProduct, setEditedProduct] =
-    useState<Omit<Product, "id">>(product);
-  const [isOpen, setIsOpen] = useState(false);
+    useState<Omit<Product, "id">>(initialProduct);
+
+  // Reset form when product changes
+  useEffect(() => {
+    if (product) {
+      setEditedProduct(product);
+    }
+  }, [product]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!product) return;
+
     try {
       onEditProduct(product.id, editedProduct);
       toast.success("Product updated successfully");
-      setIsOpen(false);
+      onOpenChange(false);
     } catch (err: unknown) {
       const error = err as Error;
       toast.error(`Failed to update product: ${error.message}`);
     }
   };
 
+  if (!product) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {trigger || <Button variant="outline">Edit</Button>}
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] p-6">
         <DialogHeader className="space-y-2">
           <DialogTitle className="text-2xl">Edit Product</DialogTitle>
@@ -156,10 +175,10 @@ export function EditProductFormModal({
                 Condition
               </Label>
               <Select
-                onValueChange={(value) =>
+                value={editedProduct.condition}
+                onValueChange={(value: ProductCondition) =>
                   setEditedProduct({ ...editedProduct, condition: value })
                 }
-                defaultValue={editedProduct.condition}
               >
                 <SelectTrigger className="h-12 md:h-10 text-base w-full active:scale-[0.98] transition-transform">
                   <SelectValue placeholder="Select condition" />

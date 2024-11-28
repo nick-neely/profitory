@@ -14,8 +14,6 @@ import { copyToClipboard } from "@/utils/copy";
 import { exportToCSV } from "@/utils/export";
 import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
-import { EditProductFormModal } from "./EditProductFormModal";
 
 interface ProductRowProps {
   product: Product;
@@ -56,7 +54,7 @@ export function ProductRow({
       <ContextMenuTrigger asChild>
         <TableRow
           className="cursor-pointer hover:bg-muted/50"
-          onClick={() => actions.onRowClick(product)}
+          onClick={() => actions.onView(product)}
         >
           {columnConfig.sortedColumns.map((column) => (
             <TableCell
@@ -88,55 +86,42 @@ export function ProductRow({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex space-x-2">
-              <EditProductFormModal
-                product={product}
-                onEditProduct={actions.onEditProduct}
-                trigger={
-                  <Button variant="outline" size="icon" className="md:hidden">
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                }
-              />
-              <EditProductFormModal
-                product={product}
-                onEditProduct={actions.onEditProduct}
-                trigger={
-                  <Button variant="outline" className="hidden md:inline-flex">
-                    Edit
-                  </Button>
-                }
-              />
-              <DeleteConfirmationModal
-                productName={product.name}
-                onConfirm={() => actions.onRemoveProduct(product.id)}
-                trigger={
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="md:hidden text-red-600 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                }
-              />
-              <DeleteConfirmationModal
-                productName={product.name}
-                onConfirm={() => actions.onRemoveProduct(product.id)}
-                trigger={
-                  <Button
-                    variant="outline"
-                    className="hidden md:inline-flex text-red-600 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30"
-                  >
-                    Remove
-                  </Button>
-                }
-              />
+              <Button
+                variant="outline"
+                size="icon"
+                className="md:hidden"
+                onClick={() => actions.onEdit(product)}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="hidden md:inline-flex"
+                onClick={() => actions.onEdit(product)}
+              >
+                Edit
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="md:hidden text-red-600 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30"
+                onClick={() => actions.onDelete(product)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="hidden md:inline-flex text-red-600 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30"
+                onClick={() => actions.onDelete(product)}
+              >
+                Remove
+              </Button>
             </div>
           </TableCell>
         </TableRow>
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem onClick={() => actions.onRowClick(product)}>
+        <ContextMenuItem onClick={() => actions.onView(product)}>
           View Details
         </ContextMenuItem>
         <ContextMenuSeparator />
@@ -149,7 +134,7 @@ export function ProductRow({
         <ContextMenuSeparator />
         <ContextMenuItem
           className="text-red-600"
-          onClick={() => actions.onRemoveProduct(product.id)}
+          onClick={() => actions.onDelete(product)}
         >
           Delete Row
         </ContextMenuItem>

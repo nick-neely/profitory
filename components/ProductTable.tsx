@@ -20,6 +20,7 @@ import { useColumnResize } from "@/hooks/useColumnResize";
 import { Product, ProductInput } from "@/hooks/useProducts";
 import { NumberFilter, useProductTable } from "@/hooks/useProductTable";
 import { cn } from "@/lib/utils";
+import { RowActions } from "@/types/product-table";
 import { copyToClipboard } from "@/utils/copy";
 import { exportToCSV } from "@/utils/export";
 import {
@@ -37,6 +38,7 @@ import { ConditionFilterInput } from "./ConditionFilterInput";
 import { ControlsBar } from "./ControlsBar";
 import { DeleteAllConfirmationModal } from "./DeleteAllConfirmationModal";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import { EditProductFormModal } from "./EditProductFormModal";
 import { NumberFilterInput } from "./NumberFilterInput";
 import {
   NumberFilterPopover,
@@ -81,9 +83,6 @@ export function ProductTable({
 
   const [showFilterInputs, setShowFilterInputs] = useState(false);
   const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
   const [stickyHeader, setStickyHeader] = useState(true);
   const [stickyFooter, setStickyFooter] = useState(false);
   const [visibleTotals, setVisibleTotals] = useState<(keyof Product)[]>([
@@ -92,6 +91,17 @@ export function ProductTable({
     "cost",
     "profit",
   ]);
+
+  // Modal states
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [productToView, setProductToView] = useState<Product | null>(null);
+
+  const rowActions: RowActions = {
+    onEdit: (product) => setProductToEdit(product),
+    onDelete: (product) => setProductToDelete(product),
+    onView: (product) => setProductToView(product),
+  };
 
   const {
     columns,
@@ -217,10 +227,6 @@ export function ProductTable({
     [filters, handleFilterChange, setFilters]
   );
 
-  const handleRowClick = useCallback((product: Product) => {
-    setSelectedProduct(product);
-    setIsDetailOpen(true);
-  }, []);
 
   const columnWidthsInit = useMemo(
     () => ({
@@ -585,14 +591,9 @@ export function ProductTable({
                   visibleColumns: columns,
                   sortedColumns,
                   getPinnedPosition,
-                  getCumulativePinnedWidth
+                  getCumulativePinnedWidth,
                 }}
-                actions={{
-                  onEditProduct,
-                  onRemoveProduct: (id) =>
-                    setDeleteProduct(products.find((p) => p.id === id) || null),
-                  onRowClick: handleRowClick,
-                }}
+                actions={rowActions}
               />
 
               <ProductTableFooter
@@ -627,18 +628,29 @@ export function ProductTable({
           onConfirm={onRemoveAllProducts}
         />
         <DeleteConfirmationModal
-          productName={deleteProduct?.name ?? ""}
+          productName={productToDelete?.name ?? ""}
+          isOpen={!!productToDelete}
+          onOpenChange={(open) => !open && setProductToDelete(null)}
           onConfirm={() => {
-            if (deleteProduct) {
-              onRemoveProduct(deleteProduct.id);
-              setDeleteProduct(null);
+            if (productToDelete) {
+              onRemoveProduct(productToDelete.id);
+              setProductToDelete(null);
             }
           }}
         />
+        <EditProductFormModal
+          product={productToEdit}
+          isOpen={!!productToEdit}
+          onOpenChange={(open) => !open && setProductToEdit(null)}
+          onEditProduct={(id, product) => {
+            onEditProduct(id, product);
+            setProductToEdit(null);
+          }}
+        />
         <ProductDetailModal
-          product={selectedProduct}
-          isOpen={isDetailOpen}
-          onOpenChange={setIsDetailOpen}
+          product={productToView}
+          isOpen={!!productToView}
+          onOpenChange={(open) => !open && setProductToView(null)}
         />
       </div>
     </div>
