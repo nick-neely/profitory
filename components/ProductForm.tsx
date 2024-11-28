@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PRODUCT_CONDITIONS } from "@/constants";
+import { PRODUCT_CONDITIONS, type ProductCondition } from "@/constants";
 import { ProductInput } from "@/hooks/useProducts";
 import { productSchema, type ProductFormValues } from "@/lib/schemas/product";
 import { cn } from "@/lib/utils";
@@ -43,7 +43,7 @@ interface CSVRow {
   Name: string;
   Price: string;
   Quantity: string;
-  Condition: string;
+  Condition: ProductCondition;
   Category: string;
   Cost: string;
 }
@@ -51,6 +51,15 @@ interface CSVRow {
 interface ProductFormProps {
   onAddProduct: (product: ProductInput | ProductInput[]) => void;
 }
+
+const validateCondition = (condition: string): ProductCondition => {
+  if (PRODUCT_CONDITIONS.includes(condition as ProductCondition)) {
+    return condition as ProductCondition;
+  }
+  // Default to "New" if invalid condition is provided
+  console.warn(`Invalid condition "${condition}" defaulting to "New"`);
+  return "New";
+};
 
 export function ProductForm({ onAddProduct }: ProductFormProps) {
   const [isImporting, setIsImporting] = useState(false);
@@ -156,7 +165,7 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
                   name: row.Name || "",
                   price: parseFloat(row.Price.replace(/[$,]/g, "")) || 0,
                   quantity: parseInt(row.Quantity) || 1,
-                  condition: row.Condition || "New",
+                  condition: validateCondition(row.Condition),
                   category: row.Category || "",
                   cost: parseFloat(row.Cost?.replace(/[$,]/g, "") || "0") || 0, // Add cost with fallback
                 })
